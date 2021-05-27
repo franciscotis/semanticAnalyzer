@@ -1,4 +1,4 @@
-# Analisador Léxico - MI - PROC. DE LINGUAGEM DE PROGRAMAÇÃO(TP04) - 2020.1
+# Analisador Semântico - MI - PROC. DE LINGUAGEM DE PROGRAMAÇÃO(TP04) - 2020.1
 ## Feito por: Esaú Mascarenhas e Francisco Pereira
 
 ## Como Utilizar:
