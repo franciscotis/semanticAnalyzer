@@ -1,3 +1,4 @@
+from model.Symbol import Symbol
 import re 
 class Syntactic:
     def __init__(self, lexical, firstSet, followSet):
@@ -6,11 +7,32 @@ class Syntactic:
         self.firstSet  = firstSet
         self.followSet = followSet
         self.token_list = []
+        self.symbol_table = {"global": [], "local": {}}
+        self.inside_method = False
+        self.inside_struct = False
+        self.current_method = ''
+        self.current_symbol = ''
+        self.current_struct = ''
+        self.declared_function = ''
 
     def run(self):
         self.getNextToken()
         self.inicio()
         self.lexical.file.print_file(self.token_list)
+        global_symbols = self.symbol_table["global"]
+        local_symbols = self.symbol_table["local"]
+        print("---- GLOBAL SYMBOLS ----")
+        for simbolo in global_symbols:
+            simbolo.toString()
+        print("\n")
+        print("---- LOCAL SYMBOLS ----")
+        for local in local_symbols:
+            print(f" === {local} ===")
+            for simbolo in local_symbols[local]:
+                simbolo.toString()
+            print("\n")
+
+
 
 
     def getNextToken(self):
@@ -25,11 +47,16 @@ class Syntactic:
                 if(self.token.getType()==follow):  return
             self.getNextToken()
 
+    
+
     def printError(self, lineNumber, expected, got):
         esperado = ', '.join(expected)
         texto = f"ERROR on line {lineNumber}: Expecting [{esperado}]. Got: '{got}'"
         return texto
 
+    def printSemanticError(self, lineNumber, errorType, got):
+        texto = f"SEMANTIC ERROR on line {lineNumber}. {errorType} - {got}"
+        return texto
 
 
     def inicio(self):
@@ -38,7 +65,9 @@ class Syntactic:
                 self.typedefDeclaration()
                 self.inicio()
             elif(self.token.getValue() in self.firstSet["STRUCTDECLARATION"]):
+                self.inside_struct = True
                 self.structDeclaration()
+                self.inside_struct = False
                 self.inicio()
             elif(self.token.getValue() in self.firstSet["VARDECLARATION"]):
                 self.varDeclaration()
@@ -58,7 +87,9 @@ class Syntactic:
                 self.typedefDeclaration()
                 self.header1()
             elif self.token.getValue() in self.firstSet["STRUCTDECLARATION"]:
+                self.inside_struct = True
                 self.structDeclaration()
+                self.inside_struct = False
                 self.header1()
             elif self.token.getValue() in self.firstSet["CONSTDECLARATION"]:
                 self.constDeclaration()
@@ -76,7 +107,9 @@ class Syntactic:
                 self.typedefDeclaration()
                 self.header2()  
             elif self.token.getValue() in self.firstSet["STRUCTDECLARATION"]:
+                self.inside_struct = True
                 self.structDeclaration()
+                self.inside_struct = False
                 self.header2()
             elif self.token.getValue() in self.firstSet["VARDECLARATION"]:
                 self.varDeclaration()
@@ -92,7 +125,9 @@ class Syntactic:
             self.typedefDeclaration()
             self.header3()  
         elif self.token.getValue() in self.firstSet["STRUCTDECLARATION"]:
+            self.inside_struct = True
             self.structDeclaration()
+            self.inside_struct = False
             self.header3()
         elif self.token.getValue() in self.firstSet["METHODS"]:
             self.methods()
@@ -103,12 +138,16 @@ class Syntactic:
     def methods(self):
         if self.token is not None:
             if self.token.getValue() in self.firstSet["FUNCTION"]:
+                self.inside_method = True
                 self.function()
+                self.inside_method = False
                 self.methods()
             elif self.token.getValue() in self.firstSet["PROCEDURE"]:
                 if self.token.getValue() == 'procedure':
+                    self.inside_method = True
                     self.getNextToken()
                     self.procedure()
+                    self.inside_method = False
                     self.methods()
 
 
@@ -323,6 +362,18 @@ class Syntactic:
 
     def varId(self):
         if self.token.getType() == "IDE":
+            symbol = Symbol(self.token.getValue(), 'var', self.token.getType())
+            if self.inside_method:
+                self.symbol_table["local"][self.current_method].append(symbol)
+                self.current_symbol = symbol
+            else:
+                if self.inside_struct:
+                    self.symbol_table["local"][self.current_struct].append(symbol)
+                    self.current_symbol = symbol
+                else:
+                    self.symbol_table["global"].append(symbol)
+                    self.current_symbol = symbol
+                
             self.identificador()
             if self.token.getValue() in self.firstSet["VAREXP"]:
                 self.varExp()
@@ -343,6 +394,9 @@ class Syntactic:
                 self.getError(self.followSet["VARDECLARATION"])
         elif self.token.getValue() == '=':
             self.getNextToken()
+            #TODO fazer para mais tipos
+            if self.token.getType() == "NRO":
+                self.current_symbol.addValue(self.token.getValue())
             if self.token.getValue() in self.firstSet["VALUE"] or self.token.getType() in self.firstSet["VALUE"]:
                 self.value()
                 self.verifVar()
@@ -596,6 +650,17 @@ class Syntactic:
     
     def constId(self):
         if self.token.getType() == "IDE":
+            symbol = Symbol(self.token.getValue(), 'var', self.token.getType())
+            if self.inside_method:
+                self.symbol_table["local"][self.current_method].append(symbol)
+                self.current_symbol = symbol
+            else:
+                if self.inside_struct:
+                    self.symbol_table["local"][self.current_struct].append(symbol)
+                    self.current_symbol = symbol
+                else:
+                    self.symbol_table["global"].append(symbol)
+                    self.current_symbol = symbol
             self.identificador()
             if self.token.getValue() in self.firstSet["CONSTEXP"]:
                 self.constExp()
@@ -777,6 +842,8 @@ class Syntactic:
             if self.dataType():
                 self.getNextToken()
                 if self.token.getType() == 'IDE':
+                    self.symbol_table["local"][self.token.getValue()] = []
+                    self.current_method = self.token.getValue() 
                     self.getNextToken()
                     if self.token.getValue() =='(':
                         self.getNextToken()
@@ -955,6 +1022,8 @@ class Syntactic:
         if(self.token.getValue() == 'struct'):
             self.getNextToken()
             if(self.token.getType()=="IDE"):
+                self.symbol_table["local"][self.token.getValue()] = []
+                self.current_struct = self.token.getValue() 
                 self.getNextToken()
                 if self.token.getValue() in self.firstSet["STRUCTVARS"]:
                     self.structVars()
@@ -990,6 +1059,8 @@ class Syntactic:
         elif(self.token.getValue() == 'extends'):
             self.getNextToken()
             if(self.token.getType()=="IDE"):
+                if(self.token.getValue() not in self.symbol_table["local"]):
+                    print(self.printSemanticError(self.token.current_line, "A struct should only extends another struct if the second one exists", self.token.getValue()))
                 self.getNextToken()
                 if(self.token.getValue() == '{'):
                     self.getNextToken()
@@ -1420,6 +1491,8 @@ class Syntactic:
 
     def procedure(self):
         if self.token.getType() == "IDE":
+            self.symbol_table["local"][self.token.getValue()] = []
+            self.current_method = self.token.getValue() 
             self.identificador()
             if self.token.getValue() =="(":
                 self.getNextToken()
@@ -1586,14 +1659,19 @@ class Syntactic:
         elif self.token.getValue() in self.firstSet["TYPEDEFDECLARATION"]:
             self.typedefDeclaration()
         elif self.token.getValue() in self.firstSet["STRUCTDECLARATION"]:
+            self.inside_struct = True
             self.structDeclaration()
+            self.inside_struct = False
         else:
              self.token_list.append(self.printError(self.token.current_line, self.firstSet["COMANDO"], self.token.getValue()))
 
     def preFuncionAtribuicao(self):
         if self.token.getType() == "IDE":
+            self.declared_function = self.token
             self.identificador()
             if self.token.getValue() == '(':
+                if self.declared_function.getValue() not in self.symbol_table["local"]:
+                    print(self.printSemanticError(self.declared_function.current_line, "A function/procedure should be declared before call",self.declared_function.getValue()+"()"))
                 self.functionCall()
             elif self.token.getValue() == '=':
                 self.atribuicao(False)
@@ -1775,7 +1853,7 @@ class Syntactic:
                         else:
                              self.token_list.append(self.printError(self.token.current_line, ["{"], self.token.getValue()))
                     else:
-                         self.token_list.append(self.printError(self.token.current_line, self.firstSet[")"], self.token.getValue()))
+                         self.token_list.append(self.printError(self.token.current_line, [")"], self.token.getValue()))
                 else:
                      self.token_list.append(self.printError(self.token.current_line, self.firstSet["BOOLOPERATIONS"], self.token.getValue()))
         else:
@@ -1803,7 +1881,7 @@ class Syntactic:
                                 else:
                                     self.token_list.append(self.printError(self.token.current_line, self.firstSet["CODIGO"], self.token.getValue()))
                             else:
-                                self.token_list.append(self.printError(self.token.current_line, self.firstSet["{"], self.token.getValue()))
+                                self.token_list.append(self.printError(self.token.current_line, ["{"], self.token.getValue()))
                         else:
                             self.token_list.append(self.printError(self.token.current_line, ["then"], self.token.getValue()))
 

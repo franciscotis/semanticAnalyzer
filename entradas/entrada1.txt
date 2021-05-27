@@ -1,15 +1,15 @@
 const {
-    real PI = 3.141526, e = 2.71, g = 9.98;
+    real PI = 3.141526, e = 2.71, g = 9.98
 }
 
 struct pessoa {
-    var{
+    var
         String cpf, nome;
         int idade, peso, altura;
     }
 }
 
-struct funcionario extends pessoa{
+struct funcionario extends pessoa1{
     var{
         real salario;
     }
@@ -17,7 +17,7 @@ struct funcionario extends pessoa{
 typedef struct Pessoa Pessoa;
 typedef string frase;
 
-var
+var {
     int i = 10, jota = 4, k, l, m, n;
     boolean flag1 = true, flag2, flag3;
     real opa = 3.2, zip, zop, zup;
@@ -43,6 +43,7 @@ procedure leVetor(){
 }
 
 procedure printaVetor(){
+    shakira();
     while(i<5 && (j+3)==2){
       print(vetor[i]);
       i++;

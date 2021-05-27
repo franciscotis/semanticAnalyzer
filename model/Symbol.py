@@ -10,12 +10,12 @@ class Symbol:
         - Valor que está associado a ele (caso exista uma atribuição)
     '''
     
-    def __init__(identifier, identifier_type, token_type, value):
+    def __init__(self,identifier, identifier_type, token_type):
         self.identifier = identifier
         self.identifier_type = identifier_type
         self.token_type = token_type
         self.parameters = []
-        self.value = value
+        self.value = ''
 
     def addParameters(self, symbol):
         self.parameters.append(symbol)
@@ -23,6 +23,11 @@ class Symbol:
     def removeParameters(self, symbol):
         self.parameters.remove(symbol)
 
+    def addValue(self, value):
+        self.value = value
+
+    def toString(self):
+        print(f"{self.identifier} {self.identifier_type} {self.token_type} {self.value}")
 
 
 
