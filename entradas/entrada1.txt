@@ -119,13 +119,12 @@ procedure start(){
         struct Pessoa xablau;
         frase motivacional = "false oi oi";
     }
+    const{
+        int a = 10;
+    }
+    a = 20;
     print("Inicio de cdigo");
     s = soma(k, m);
-    Pessoa.idade = 21; 
-    Pessoa.peso = 60;
-    Pessoa.altura = 170;
-    Pessoa.nome = "Cleytinho";
-    Pessoa.cpf = "000.000.000-00";
 
     print("Digite seu nome: ");
     read(global.pessoa2.nome);

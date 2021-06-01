@@ -1,3 +1,4 @@
+from controllers.Semantic import Semantic
 from controllers.Lexical import Lexical
 from controllers.Syntactic import Syntactic
 
@@ -24,7 +25,8 @@ class ProgramStart:
         for file in self.txtfiles:
             print("----------- Analisando o arquivo {} -----------".format(file))
             lexical = Lexical(file)
-            syntactic = Syntactic(lexical, self.firstSet, self.followSet)
+            semantic = Semantic()
+            syntactic = Syntactic(lexical, semantic, self.firstSet, self.followSet)
             syntactic.run()
 
 
