@@ -18,6 +18,8 @@ class Semantic:
                 self.functionCallParameters(tokens_list)
             elif rule == 'notAllowAConstraintToReceiveValue':
                 self.notAllowAConstraintToReceiveValue(tokens_list)
+            elif rule == 'verifyIfIdentifierExists':
+                self.verifyIfIdentifierExists(tokens_list)
 
     def printSemanticError(self, lineNumber, errorType, got):
         texto = f"SEMANTIC ERROR on line {lineNumber}. {errorType} - {got}"
@@ -122,6 +124,35 @@ class Semantic:
                 print(self.printSemanticError(variable_token.current_line, "You cannot assign values to const variables after its declaration ",variable_token.getValue()))
 
 
+
+#TODO VERIFICAR ESCOPO GLOBAL
+    def verifyIfIdentifierExists(self, tokens):
+        identifier = tokens[0]
+        encontrado = False
+        if identifier.getValue() not in self.symbol_table['local']:
+            for global_symbol in self.symbol_table['global']:
+                if identifier.getValue() == global_symbol.getIdentifier():
+                    encontrado = True
+            for estrutura_local in self.symbol_table['local']:
+                for simbolo in self.symbol_table['local'][estrutura_local]:
+                    if identifier.getValue() == simbolo.getIdentifier():
+                        encontrado = True
+                if estrutura_local in self.functions_table:
+                    for parametro in self.functions_table[estrutura_local].getParameters():
+                        if identifier.getValue() == parametro.getIdentifier():
+                            encontrado = True
+
+        else:
+            encontrado = True
+        if not encontrado:
+            print(self.printSemanticError(identifier.current_line, "An identifier must be initialized before use ",identifier.getValue()))
+
+            
+
+
+
+
+        
 
 
 

@@ -12,6 +12,7 @@ class Syntactic:
         self.functions_table = {}
         self.inside_method = False
         self.inside_struct = False
+        self.inside_code = False
         self.is_const = False
         self.current_symbol = ''
         self.current_struct = ''
@@ -187,6 +188,8 @@ class Syntactic:
 
     def identificador(self):
         if self.token.getType()=="IDE":
+            if self.inside_code:
+                self.semantic.analyze(self.symbol_table, ['verifyIfIdentifierExists'],[self.token], self.functions_table)
             self.getNextToken()
             if self.token.getValue() in self.firstSet["CONTIDENTIFICADOR"]:
                 self.contIdentificador()
@@ -1641,10 +1644,12 @@ class Syntactic:
             self.getError(self.followSet["PROCCONTENT4"])
 
     def codigo(self):
+        self.inside_code = True
         if self.token.getValue() in self.firstSet["COMANDO"] or self.token.getType() in self.firstSet["COMANDO"]:
             self.comando()
             if self.token.getValue() in self.firstSet["CODIGO"] or self.token.getType() in self.firstSet["CODIGO"]:
                 self.codigo()
+        self.inside_code = False
 
     def comando(self):
         if self.token.getValue() in self.firstSet["PRINT"]:
