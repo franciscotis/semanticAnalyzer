@@ -397,6 +397,14 @@ class Syntactic:
             #TODO fazer para mais tipos
             if self.token.getType() == "NRO":
                 self.current_symbol.addValue(self.token.getValue())
+                if('.' in self.token.getValue()):
+                    self.current_symbol.setAssignmentType('REAL')
+                else:
+                    self.current_symbol.setAssignmentType('INT')
+            if self.token.getType() == "PRE":
+                self.current_symbol.addValue(self.token.getValue())
+                if(self.token.getValue() == 'true' or self.token.getValue() == 'false'):
+                    self.current_symbol.setAssignmentType('BOOLEAN')
             if self.token.getValue() in self.firstSet["VALUE"] or self.token.getType() in self.firstSet["VALUE"]:
                 self.value()
                 self.verifVar()
@@ -678,6 +686,16 @@ class Syntactic:
     def constExp(self):
         if self.token.getValue() =='=':
             self.getNextToken()
+            if self.token.getType() == "NRO":
+                self.current_symbol.addValue(self.token.getValue())
+                if('.' in self.token.getValue()):
+                    self.current_symbol.setAssignmentType('REAL')
+                else:
+                    self.current_symbol.setAssignmentType('INT')
+            if self.token.getType() == "PRE":
+                self.current_symbol.addValue(self.token.getValue())
+                if(self.token.getValue() == 'true' or self.token.getValue() == 'false'):
+                    self.current_symbol.setAssignmentType('BOOLEAN')
             if self.token.getType() in self.firstSet["VALUE"] or self.token.getValue() in self.firstSet["VALUE"]:
                 self.value()
                 if self.token.getValue() in self.firstSet["VERIFCONST"]:
@@ -1862,7 +1880,10 @@ class Syntactic:
             if self.token.getValue() =='(':
                 self.getNextToken()
                 if self.token.getValue() in self.firstSet["BOOLOPERATIONS"] or self.token.getType() in self.firstSet["BOOLOPERATIONS"]:
+                    self.token_value_list = []
                     self.boolOperations()
+                    self.semantic.analyze(self.symbol_table, ['checkBooleanCondition'],list(chain([self.current_method], self.token_value_list)) )
+                    self.token_value_list = []
                     if self.token.getValue() == ')':
                         self.getNextToken()
                         if self.token.getValue() == '{':
@@ -1888,9 +1909,12 @@ class Syntactic:
         if self.token.getValue() =='if':
             self.getNextToken()
             if self.token.getValue() =='(':
+                self.token_value_list = []
                 self.getNextToken()
                 if self.token.getValue() in self.firstSet["BOOLOPERATIONS"] or self.token.getType() in self.firstSet["BOOLOPERATIONS"]:
                     self.boolOperations()
+                    self.semantic.analyze(self.symbol_table, ['checkBooleanCondition'],list(chain([self.current_method], self.token_value_list)) )
+                    self.token_value_list = []
                     if self.token.getValue() == ')':
                         self.getNextToken()
                         if self.token.getValue() == 'then':

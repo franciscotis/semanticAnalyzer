@@ -20,6 +20,8 @@ class Semantic:
                 self.notAllowAConstraintToReceiveValue(tokens_list)
             elif rule == 'verifyIfIdentifierExists':
                 self.verifyIfIdentifierExists(tokens_list)
+            elif rule == 'checkBooleanCondition':
+                self.checkBooleanCondition(tokens_list)
 
     def printSemanticError(self, lineNumber, errorType, got):
         texto = f"SEMANTIC ERROR on line {lineNumber}. {errorType} - {got}"
@@ -124,8 +126,9 @@ class Semantic:
                 print(self.printSemanticError(variable_token.current_line, "You cannot assign values to const variables after its declaration ",variable_token.getValue()))
 
 
+    # Um identificador deve ser declarado antes de seu uso
 
-#TODO VERIFICAR ESCOPO GLOBAL
+
     def verifyIfIdentifierExists(self, tokens):
         identifier = tokens[0]
         encontrado = False
@@ -146,6 +149,41 @@ class Semantic:
             encontrado = True
         if not encontrado:
             print(self.printSemanticError(identifier.current_line, "An identifier must be initialized before use ",identifier.getValue()))
+
+    # Itens de condição em if e while tem que ser booleanos.
+
+    '''
+    Casos:
+    1 - Somente valor booleano => if(true)
+    2 - Variável booleana => if(a)
+    3 - Expressão com resultado booleano => if (3+4 == 7) - presença do ==
+    '''
+
+    def checkBooleanCondition(self, tokens):
+        current_context = tokens.pop(0)
+        nao_expressao = True
+        has_boolean = False
+        last_token = tokens[0]
+        while self.hasNextToken(tokens):
+            token = self.nextToken(tokens)
+            last_token = token
+            if token.getValue() != '(' or token.getValue() != ')':
+                if token.getType() == 'IDE' or token.getType() == 'PRE':
+                    symbol = self.getSymbol('local', token.getValue(), current_context)
+                    if(not symbol):
+                        symbol = self.getSymbol('global', token.getValue())
+                        if not symbol:
+                            if not (token.getType() == 'PRE' and (token.getValue() == 'true' or token.getValue() == 'false')): 
+                                print(self.printSemanticError(token.current_line, "An identifier must be initialized before use ",token.getValue()))
+                    else:
+                        if(symbol.getAssignmentType() == 'BOOLEAN'):
+                            has_boolean = True
+                if token.getType() == 'REL':
+                    nao_expressao = False
+        if((nao_expressao and not has_boolean) ):
+            print(self.printSemanticError(last_token.current_line, "An condition must have a boolean value ",last_token.getValue()))
+
+                
 
             
 

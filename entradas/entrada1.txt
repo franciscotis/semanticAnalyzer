@@ -1,9 +1,9 @@
 const {
-    real PI = 3.141526, e = 2.71, g = 9.98
+    real PI = 3.141526, e = 2.71, g = 9.98;
 }
 
 struct pessoa {
-    var
+    var{
         String cpf, nome;
         int idade, peso, altura;
     }
@@ -14,119 +14,44 @@ struct funcionario extends pessoa1{
         real salario;
     }
 }
-typedef struct Pessoa Pessoa;
-typedef string frase;
 
-var {
-    int i = 10, jota = 4, k, l, m, n;
-    boolean flag1 = true, flag2, flag3;
-    real opa = 3.2, zip, zop, zup;
-    string xablau = "teste";
-    
+procedure funcao1(int a, int b){
+    print(a);
 }
 
-function int soma (int a , int b){
-    var {
-          int c;
-    }
-    c = a + b;
-    print("Soma:",c);
-    return c;
-}
-
-
-procedure leVetor(){
-    while(i<5){
-      read(vetor[i]);
-      i++;
-    }
+procedure funcao2(int a){
+    print(a);
 }
 
 procedure printaVetor(){
-    shakira();
+    const{
+        int i = 10, j = 20;
+    }
     while(i<5 && (j+3)==2){
       print(vetor[i]);
       i++;
     }
 }
 
-procedure impar(){
-    struct funcionario extends pessoa{
-        var{
-            real salario;
-        }
-    }
-    typedef struct Pessoa Pessoa;
-    typedef string frase;
-    if (teste == "true")then{
-        teste = "false";
-        print(value);
-    }
-    value++;
-    if (value / 2 == 0)then{
-        teste = "true";
-    }
-}
-
-function int JOTA () {   
-    struct funcionario extends pessoa{
-        var{
-            real salario;
-        }
-    }
-    typedef struct Pessoa Pessoa;
-    typedef string frase;
-    print(i[jota][9],R8_VINTE.CASA[JOTA[788]]);
-    return jota+
-    k;
-    //opa garamba
-}
-
-function boolean k(string n){
-    var{
-        int i =0;
-        real zap = true;
-        boolean i = 8.2;
-    }
-    return i[jota][9999]+2.2+R8_VINTE.CASA[JOTA[78]];
-}
-
-procedure start50(){
-    print(i[jota][9],R8_VINTE.CASA[JOTA[78]]);
-}
-
-procedure start1 (int i){
-    print(i[K][9],R8_VINTE.CASA[JOTA[78]]);
-}
-
-function int JOTA(){
-    print(i[jota9],R8_VINTE.CASA[JOTA[78]]);
-    return true;
-}
-
-procedure JOTA(){
-    print(i[jota][9],R8_VINTE.CASA[JOTA[78]]);
-}
-
-function int JOTA(){
-    print(i[jota][9],R8_VINTE.CASA[JOTA[78]]);
-    return 8*9+10/(50)+15*12;
-}
 
 procedure start(){
     var{
         Pessoa Cleyton;
         struct Pessoa xablau;
         frase motivacional = "false oi oi";
+        int oioioi = 10;
     }
     const{
-        int a = 10;
+        int a = 10, b = 20,c = 30, d = 40;
     }
     a = 20;
     print("Inicio de cdigo");
     s = soma(k, m);
+    if(a+b == 10) then{
+        print("oi");
+    }
+
 
     print("Digite seu nome: ");
-    read(global.pessoa2.nome);
 }
 

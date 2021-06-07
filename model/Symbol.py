@@ -17,6 +17,14 @@ class Symbol:
         self.parameters = []
         self.value = ''
         self.isConst = False
+        self.assignment_type = ''
+        
+
+    def setAssignmentType(self,type):
+        self.assignment_type = type
+    
+    def getAssignmentType(self):
+        return self.assignment_type
 
     def isAConstSymbol(self):
         return self.isConst
