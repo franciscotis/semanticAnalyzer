@@ -21,7 +21,7 @@ class Semantic:
             elif rule == 'verifyIfIdentifierExists':
                 self.verifyIfIdentifierExists(tokens_list)
             elif rule == 'checkBooleanCondition':
-                self.checkBooleanCondition(tokens_list)
+                self.verifyIfBooleanExpressionIsCorrect(tokens_list)
 
     def printSemanticError(self, lineNumber, errorType, got):
         texto = f"SEMANTIC ERROR on line {lineNumber}. {errorType} - {got}"
@@ -34,6 +34,12 @@ class Semantic:
         tkn = tokens[self.current_token_value]
         self.current_token_value+=1
         return tkn
+    
+    def peekNextToken(self, tokens):
+        if self.hasNextToken(tokens):
+            return tokens[self.current_token_value]
+        else:
+            return None 
     
     def hasNextToken(self,tokens):
         return True if self.current_token_value < len(tokens) else False
@@ -56,6 +62,19 @@ class Semantic:
 
     def areTwoVariablesWithTheSameType(self, variable1, variable2):
         return True if variable1.getTokenType() == variable2.getTokenType() else False
+
+    def isRelational(self, token):
+        return True if token == '==' or token == '!=' or token == '>' or token == '>=' or token == '<' or token == '<=' else False
+
+    def isLogical(self, token):
+        return True if token == '&&' or token == '||' else False
+
+    def isArithmetic(self, token):
+        return True if token == '+' or token == '-' or token == '*' or token == '/' else False
+
+    def getExpression(self, tokens):
+        expressao = ''.join(tokens)
+        return expressao
         
 
     # ======================================================= Rules =======================================================  #
@@ -140,9 +159,50 @@ class Semantic:
     def verifyIfArithmeticExpressionIsCorrect(self, tokens):
         pass
 
-    # TODO: 8 - Itens de condição em if e while tem que ser booleanos.
+    # 8 - Itens de condição em if e while tem que ser booleanos.
     def verifyIfBooleanExpressionIsCorrect(self, tokens):
-        pass
+        if type(tokens[0]) == str:
+            current_context = tokens.pop(0)
+        values = list(map(self.getTokenValue,tokens))
+        expressao_valida = False
+        has_boolean = False
+        last_token = tokens[0]
+        expressions_list = []
+        while self.hasNextToken(tokens):
+            token = self.nextToken(tokens)
+           # print(token.getType())
+            last_token = token
+            if token.getType() == 'IDE' or token.getType() == 'PRE':
+                symbol = self.getSymbol('local', token.getValue(), current_context)
+                if not symbol:
+                    symbol = self.getSymbol('global', token.getValue())
+                    if not symbol:
+                        if (token.getType() == 'PRE' and (token.getValue() == 'true' or token.getValue() == 'false')):
+                            has_boolean = True
+            elif token.getType() == 'REL':
+                if self.isRelational(token.getValue()):
+                    expressao_valida = True
+            elif token.getType() == 'LOG':
+                if self.isLogical(token.getValue()):
+                    expressions_list.append(has_boolean or expressao_valida)
+                    has_boolean = False
+                    expressao_valida = False
+            elif token.getType() == 'DEL':
+                if token.getValue() == ')':
+                    if self.peekNextToken(tokens) is not None:
+                        if (self.peekNextToken(tokens).getValue() != ')' and not self.isRelational(self.peekNextToken(tokens).getValue()) and not self.isArithmetic(self.peekNextToken(tokens).getValue())):
+                            expressions_list.append(has_boolean or expressao_valida)
+                            has_boolean = False
+                            expressao_valida = False
+                    else:
+                        expressions_list.append(has_boolean or expressao_valida)
+                        has_boolean = False
+                        expressao_valida = False                  
+        self.current_token_value = 0
+        if len(expressions_list) == 0:
+            expressions_list.append(False)
+        if(False in expressions_list ):
+            print(self.printSemanticError(last_token.current_line, "An condition must have a boolean value ",self.getExpression(values)))
     
     # TODO: 10 - Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela
     def verifyVariableTypeAssignment(self, tokens):
@@ -184,38 +244,6 @@ class Semantic:
         if not encontrado:
             print(self.printSemanticError(identifier.current_line, "An identifier must be initialized before use ",identifier.getValue()))
 
-    # Itens de condição em if e while tem que ser booleanos.
-
-    '''
-    Casos:
-    1 - Somente valor booleano => if(true)
-    2 - Variável booleana => if(a)
-    3 - Expressão com resultado booleano => if (3+4 == 7) - presença do ==
-    '''
-
-    def checkBooleanCondition(self, tokens):
-        current_context = tokens.pop(0)
-        nao_expressao = True
-        has_boolean = False
-        last_token = tokens[0]
-        while self.hasNextToken(tokens):
-            token = self.nextToken(tokens)
-            last_token = token
-            if token.getValue() != '(' or token.getValue() != ')':
-                if token.getType() == 'IDE' or token.getType() == 'PRE':
-                    symbol = self.getSymbol('local', token.getValue(), current_context)
-                    if(not symbol):
-                        symbol = self.getSymbol('global', token.getValue())
-                        if not symbol:
-                            if not (token.getType() == 'PRE' and (token.getValue() == 'true' or token.getValue() == 'false')): 
-                                print(self.printSemanticError(token.current_line, "An identifier must be initialized before use ",token.getValue()))
-                    else:
-                        if(symbol.getAssignmentType() == 'BOOLEAN'):
-                            has_boolean = True
-                if token.getType() == 'REL':
-                    nao_expressao = False
-        if((nao_expressao and not has_boolean) ):
-            print(self.printSemanticError(last_token.current_line, "An condition must have a boolean value ",last_token.getValue()))
 
 
     # TODO: 14 - Não é possível fazer incremento em string e em booleano

@@ -23,15 +23,6 @@ procedure funcao2(int a){
     print(a);
 }
 
-procedure printaVetor(){
-    const{
-        int i = 10, j = 20;
-    }
-    while(i<5 && (j+3)==2){
-      print(vetor[i]);
-      i++;
-    }
-}
 
 
 procedure start(){
@@ -43,11 +34,11 @@ procedure start(){
     }
     const{
         int a = 10, b = 20,c = 30, d = 40;
+        boolean boleano = false;
     }
-    a = 20;
     print("Inicio de cdigo");
     s = soma(k, m);
-    if(a+b == 10) then{
+    if(i<5 && (j+3)) then{
         print("oi");
     }
 

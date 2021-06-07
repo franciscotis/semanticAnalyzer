@@ -1878,9 +1878,9 @@ class Syntactic:
         if self.token.getValue() =='while':
             self.getNextToken()
             if self.token.getValue() =='(':
+                self.token_value_list = []
                 self.getNextToken()
                 if self.token.getValue() in self.firstSet["BOOLOPERATIONS"] or self.token.getType() in self.firstSet["BOOLOPERATIONS"]:
-                    self.token_value_list = []
                     self.boolOperations()
                     self.semantic.analyze(self.symbol_table, ['checkBooleanCondition'],list(chain([self.current_method], self.token_value_list)) )
                     self.token_value_list = []

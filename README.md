@@ -57,7 +57,7 @@ CAD  - Cadeia de Caracteres
 [ ] Sobrecarga realmente tem que ser sobrecarga (e não sobrescrita).
 [x] A função tem que ser chamada com a quantidade de parâmetros e tipos corretos.
 [ ] Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro).
-[ ] Itens de condição em if e while tem que ser booleanos.
+[x] Itens de condição em if e while tem que ser booleanos.
 [ ] Operações com valores de tipos diferentes não podem ser realizadas, pois a linguagem não permite a conversão de tipos.
 [ ] Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela.
 [ ] Não é possível realizar a comparação de valores de tipos diferentes.
