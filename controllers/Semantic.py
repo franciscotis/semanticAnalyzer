@@ -58,13 +58,41 @@ class Semantic:
         return True if variable1.getTokenType() == variable2.getTokenType() else False
         
 
+    # ======================================================= Rules =======================================================  #
+    # TODO: 1 - Index de vetor/matriz tem que ser um número inteiro
+    def verifyIfVetorIndexIsInteger(self, tokens):
+        pass
+
+    # 2 - Variável ou constante tem que ser inicializada antes de a utilizar.
+    #TODO VERIFICAR ESCOPO GLOBAL
+    def verifyIfIdentifierExists(self, tokens):
+        identifier = tokens[0]
+        encontrado = False
+        if identifier.getValue() not in self.symbol_table['local']:
+            for global_symbol in self.symbol_table['global']:
+                if identifier.getValue() == global_symbol.getIdentifier():
+                    encontrado = True
+            for estrutura_local in self.symbol_table['local']:
+                for simbolo in self.symbol_table['local'][estrutura_local]:
+                    if identifier.getValue() == simbolo.getIdentifier():
+                        encontrado = True
+                if estrutura_local in self.functions_table:
+                    for parametro in self.functions_table[estrutura_local].getParameters():
+                        if identifier.getValue() == parametro.getIdentifier():
+                            encontrado = True
+        else:
+            encontrado = True
+        if not encontrado:
+            print(self.printSemanticError(identifier.current_line, "An identifier must be initialized before use ",identifier.getValue()))
 
 
+    # 3 - Uma function ou procedure tem que ser declarada antes de a utilizar.
+    def methodDeclaredFirst(self, tokens):
+        values = list(map(self.getTokenValue,tokens))
+        if values[0] not in self.symbol_table["local"]:
+            print(self.printSemanticError(tokens[0].current_line, "A function/procedure should be declared before call",tokens[0].getValue()+"()"))
 
-    #Rules
-
-
-    # Uma struct tem que herdar de outra struct existente.
+    # 4 - Uma struct tem que herdar de outra struct existente.
     def structExtends(self, tokens):
         values = list(map(self.getTokenValue,tokens))
         if 'extends' in values:
@@ -73,18 +101,13 @@ class Semantic:
             if values[index] not in self.symbol_table["local"]:
                 print(self.printSemanticError(tokens[index].current_line, "A struct should only extends another struct if the second one exists", tokens[index].getValue()))
 
+
+    # TODO: 5 - Sobrecarga realmente tem que ser sobrecarga (e não sobrescrita).
+    def verifyIfOverloadExists(self, tokens):
+        pass
+        
     
-    # Uma function ou procedure tem que ser declarada antes de a utilizar.
-
-    def methodDeclaredFirst(self, tokens):
-        values = list(map(self.getTokenValue,tokens))
-        if values[0] not in self.symbol_table["local"]:
-            print(self.printSemanticError(tokens[0].current_line, "A function/procedure should be declared before call",tokens[0].getValue()+"()"))
-
-
-
-    # A função tem que ser chamada com a quantidade de parâmetros e tipos corretos
-
+    # 6 - A função tem que ser chamada com a quantidade de parâmetros e tipos corretos
     def functionCallParameters(self, tokens):
         current_context = tokens.pop(0)
         values = list(map(self.getTokenValue,tokens))
@@ -113,8 +136,19 @@ class Semantic:
         self.current_token_value = 0
 
 
-    # Não é possível atribuir um valor a uma constante, após a sua declaração.
+    # TODO: 7 - Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro).
+    def verifyIfArithmeticExpressionIsCorrect(self, tokens):
+        pass
 
+    # TODO: 8 - Itens de condição em if e while tem que ser booleanos.
+    def verifyIfBooleanExpressionIsCorrect(self, tokens):
+        pass
+    
+    # TODO: 10 - Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela
+    def verifyVariableTypeAssignment(self, tokens):
+        pass
+
+    # 13 - Não é possível atribuir um valor a uma constante, após a sua declaração.
     def notAllowAConstraintToReceiveValue(self,tokens):
         current_context = tokens.pop(0)
         values = list(map(self.getTokenValue,tokens))
@@ -183,26 +217,8 @@ class Semantic:
         if((nao_expressao and not has_boolean) ):
             print(self.printSemanticError(last_token.current_line, "An condition must have a boolean value ",last_token.getValue()))
 
-                
 
-            
-
-
-
-
-        
-
-
-
-
-        
-   
-
-
-
-
-
-
-
-
+    # TODO: 14 - Não é possível fazer incremento em string e em booleano
+    def notAllowBooleanAndStringIncrements(self, tokens):
+        pass
 
