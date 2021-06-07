@@ -22,6 +22,9 @@ class Semantic:
                 self.verifyIfIdentifierExists(tokens_list)
             elif rule == 'checkBooleanCondition':
                 self.verifyIfBooleanExpressionIsCorrect(tokens_list)
+            elif rule == 'notAllowBooleanAndStringIncrements':
+                self.notAllowBooleanAndStringIncrements(tokens_list)
+
 
     def printSemanticError(self, lineNumber, errorType, got):
         texto = f"SEMANTIC ERROR on line {lineNumber}. {errorType} - {got}"
@@ -204,10 +207,12 @@ class Semantic:
         if(False in expressions_list ):
             print(self.printSemanticError(last_token.current_line, "An condition must have a boolean value ",self.getExpression(values)))
     
+
     # TODO: 10 - Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela
     def verifyVariableTypeAssignment(self, tokens):
         pass
 
+    
     # 13 - Não é possível atribuir um valor a uma constante, após a sua declaração.
     def notAllowAConstraintToReceiveValue(self,tokens):
         current_context = tokens.pop(0)
@@ -246,7 +251,18 @@ class Semantic:
 
 
 
-    # TODO: 14 - Não é possível fazer incremento em string e em booleano
+    
     def notAllowBooleanAndStringIncrements(self, tokens):
-        pass
-
+        function_name = tokens.pop(0)
+        values = list(map(self.getTokenValue, tokens))
+        
+        index  = values.index('++') if('++' in values) else values.index('--')
+        token1, token2 = tokens[index-1], tokens[index+1]
+        identifier = token1 if(token1.getType()=='IDE') else token2
+        
+        symbol = self.getSymbol('local', identifier.getValue(), function_name)
+        
+        if(not symbol): return
+        if(symbol.getAssignmentType()=='BOOLEAN' or symbol.getAssignmentType()=='STRING'):
+            print(self.printSemanticError(identifier.current_line, "You cannot increment/decrement boolean or string variables ", identifier.getValue()))
+    

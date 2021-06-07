@@ -405,6 +405,9 @@ class Syntactic:
                 self.current_symbol.addValue(self.token.getValue())
                 if(self.token.getValue() == 'true' or self.token.getValue() == 'false'):
                     self.current_symbol.setAssignmentType('BOOLEAN')
+            if self.token.getType() == "CAD":
+                self.current_symbol.addValue(self.token.getValue())
+                self.current_symbol.setAssignmentType('STRING')
             if self.token.getValue() in self.firstSet["VALUE"] or self.token.getType() in self.firstSet["VALUE"]:
                 self.value()
                 self.verifVar()
@@ -1406,6 +1409,8 @@ class Syntactic:
             self.token_list.append(self.printError(self.token.current_line, self.firstSet["VARIAVEL"], self.token.getValue()))
         else:
             self.token_list.append(self.printError(self.token.current_line, self.firstSet["INCREMENTOP"], self.token.getValue()))
+        self.semantic.analyze(self.symbol_table, ['notAllowBooleanAndStringIncrements'], list(chain([self.current_method], self.token_value_list)))
+        self.token_value_list = []
 
     def decrementOp(self, variavel = True):
         enter = False
@@ -1426,6 +1431,8 @@ class Syntactic:
                 self.token_list.append(self.printError(self.token.current_line, self.firstSet["VARIAVEL"], self.token.getValue()))
         else:
             self.token_list.append(self.printError(self.token.current_line, self.firstSet["DECREMENTOP"], self.token.getValue()))
+        self.semantic.analyze(self.symbol_table, ['notAllowBooleanAndStringIncrements'], list(chain([self.current_method], self.token_value_list)))
+        self.token_value_list = []
 
     def boolOperations(self):
         if self.token.getValue() in self.firstSet["OPBOOLVALUE"] or self.token.getType() in self.firstSet["OPBOOLVALUE"]:

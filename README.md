@@ -63,5 +63,5 @@ CAD  - Cadeia de Caracteres
 [ ] Não é possível realizar a comparação de valores de tipos diferentes.
 [ ] Não é possível atribuir uma variável sem valor a outra.
 [x] Não é possível atribuir um valor a uma constante, após a sua declaração.
-[ ] Não é possível fazer incremento em string e em booleano
+[x] Não é possível fazer incremento em string e em booleano
 ```
