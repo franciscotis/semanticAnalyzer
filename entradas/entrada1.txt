@@ -23,14 +23,9 @@ procedure funcao2(int a){
     print(a);
 }
 
-
-
 procedure start(){
     var{
-        Pessoa Cleyton;
-        struct Pessoa xablau;
-        frase motivacional = "false oi oi";
-        int oioioi = 10;
+        int a[4] = [1,2,3,4];
     }
     const{
         int a = 10, b = 20,c = 30, d = 40;

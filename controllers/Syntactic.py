@@ -373,8 +373,10 @@ class Syntactic:
                 else:
                     self.symbol_table["global"].append(symbol)
                     self.current_symbol = symbol
-                
-            self.identificador()
+            if self.token.getType() == "IDE":
+                self.semantic.analyze(self.symbol_table, ['verifyIfIdentifierExists'],[self.token], self.functions_table)
+                self.getNextToken() 
+            #self.identificador()
             if self.token.getValue() in self.firstSet["VAREXP"]:
                 self.varExp()
             else:
@@ -424,7 +426,7 @@ class Syntactic:
         elif self.token.getValue() == '[':
             self.getNextToken()
             if(self.token.getValue() in self.firstSet["ARITMETICOP"] or self.token.getType() in self.firstSet["ARITMETICOP"]):
-                self.aritmeticOp()
+                self.aritimeticOp()
                 if self.token.getValue() == ']':
                     self.getNextToken()
                     if self.token.getValue() in self.firstSet["ESTRUTURA"]:
@@ -676,7 +678,9 @@ class Syntactic:
                 else:
                     self.symbol_table["global"].append(symbol)
                     self.current_symbol = symbol
-            self.identificador()
+            if self.token.getType() == "IDE":
+                self.semantic.analyze(self.symbol_table, ['verifyIfIdentifierExists'],[self.token], self.functions_table)
+                self.getNextToken() 
             if self.token.getValue() in self.firstSet["CONSTEXP"]:
                 self.constExp()
             else:

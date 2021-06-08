@@ -64,4 +64,5 @@ CAD  - Cadeia de Caracteres
 [ ] Não é possível atribuir uma variável sem valor a outra.
 [x] Não é possível atribuir um valor a uma constante, após a sua declaração.
 [x] Não é possível fazer incremento em string e em booleano
+[ ] Não é possível declarar tipos diferentes de valores em um array (e.g. int a[] = {1,2,3,"abc",4})
 ```
