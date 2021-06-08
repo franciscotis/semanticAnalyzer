@@ -38,8 +38,8 @@ procedure start(){
     }
     print("Inicio de cdigo");
     s = soma(k, m);
-    if(i<5 && (j+3)) then{
-        print("oi");
+    if((a+b) != c) then{
+        print("oie");
     }
 
 

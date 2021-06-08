@@ -24,6 +24,8 @@ class Semantic:
                 self.verifyIfBooleanExpressionIsCorrect(tokens_list)
             elif rule == 'notAllowBooleanAndStringIncrements':
                 self.notAllowBooleanAndStringIncrements(tokens_list)
+            elif rule == 'checkTypeComparation':
+                self.notAllowComparationBetweenDifferentTypesOfVariables(tokens_list)
 
 
     def printSemanticError(self, lineNumber, errorType, got):
@@ -165,11 +167,12 @@ class Semantic:
     # 8 - Itens de condição em if e while tem que ser booleanos.
     def verifyIfBooleanExpressionIsCorrect(self, tokens):
         if type(tokens[0]) == str:
-            current_context = tokens.pop(0)
-        values = list(map(self.getTokenValue,tokens))
+            current_context = tokens[0]
+        values = list(map(self.getTokenValue,tokens[1:]))
+        tokens = tokens[1:]
         expressao_valida = False
         has_boolean = False
-        last_token = tokens[0]
+        last_token = tokens[1]
         expressions_list = []
         while self.hasNextToken(tokens):
             token = self.nextToken(tokens)
@@ -182,6 +185,9 @@ class Semantic:
                     if not symbol:
                         if (token.getType() == 'PRE' and (token.getValue() == 'true' or token.getValue() == 'false')):
                             has_boolean = True
+                else:
+                    if (symbol.getValue() == 'true' or symbol.getValue() == 'false'):
+                        has_boolean = True
             elif token.getType() == 'REL':
                 if self.isRelational(token.getValue()):
                     expressao_valida = True
@@ -248,6 +254,61 @@ class Semantic:
             encontrado = True
         if not encontrado:
             print(self.printSemanticError(identifier.current_line, "An identifier must be initialized before use ",identifier.getValue()))
+
+
+    # 14 - Não é possível realizar a comparação de valores de tipos diferentes.
+
+    def notAllowComparationBetweenDifferentTypesOfVariables(self, tokens):
+        if type(tokens[0]) == str:
+            current_context = tokens[0]
+        values = list(map(self.getTokenValue,tokens[1:]))
+        last_token = tokens[0]
+        current_type = ''
+        relational_value = False
+        tokens = tokens[1:]
+        valor_verdadeiro = True
+        expressions_list = []
+        while self.hasNextToken(tokens):
+            token = self.nextToken(tokens)
+            last_token = token
+            if token.getType() == 'IDE' or token.getType() == 'PRE':
+                symbol = self.getSymbol('local', token.getValue(), current_context)
+                if relational_value and current_type != '':
+                    if type(current_type)  == str:
+                        if symbol and symbol.getAssignmentType() != current_type:
+                            valor_verdadeiro = False
+                            relational_value = False
+                    elif symbol and symbol.getAssignmentType() != current_type.getAssignmentType():
+                        valor_verdadeiro = False
+                        relational_value = False
+                if type(current_type == str):
+                    if (symbol and current_type!= '' and current_type!= symbol.getIdentifier()) or (symbol and current_type == ''):
+                        current_type = symbol
+                elif (symbol and current_type!= '' and current_type.getIdentifier()!= symbol.getIdentifier()) or (symbol and current_type == ''):
+                    current_type = symbol
+                if not symbol:
+                    symbol = self.getSymbol('global', token.getValue())
+                    if (symbol and current_type.getIdentifier()!= symbol.getIdentifier()) or (symbol and current_type == ''):
+                        current_type = symbol
+                    if symbol and current_type.getIdentifier()!= symbol.getIdentifier():
+                        valor_verdadeiro = False
+                        relational_value = False
+                    if not symbol:
+                        if (token.getType() == 'PRE' and (token.getValue() == 'true' or token.getValue() == 'false')):
+                            current_type = 'BOOLEAN'
+                            if 'BOOLEAN' != current_type:
+                                valor_verdadeiro = False
+                                relational_value = False
+            elif token.getType() == 'REL':
+                if self.isRelational(token.getValue()):
+                    relational_value = True
+            elif token.getType() == 'LOG':
+                if self.isLogical(token.getValue()):
+                    expressions_list.append(valor_verdadeiro)
+                    valor_verdadeiro = True
+                    current_type = ''    
+        if False in expressions_list:
+            print(self.printSemanticError(last_token.current_line, "You can't compare two different kinds of variables",self.getExpression(values)))
 
 
 

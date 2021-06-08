@@ -1735,7 +1735,6 @@ class Syntactic:
                     self.getNextToken()
             
 
-
     def printFunction(self):
         if self.token.getValue() == "print":
             self.getNextToken()
@@ -1889,7 +1888,7 @@ class Syntactic:
                 self.getNextToken()
                 if self.token.getValue() in self.firstSet["BOOLOPERATIONS"] or self.token.getType() in self.firstSet["BOOLOPERATIONS"]:
                     self.boolOperations()
-                    self.semantic.analyze(self.symbol_table, ['checkBooleanCondition'],list(chain([self.current_method], self.token_value_list)) )
+                    self.semantic.analyze(self.symbol_table, ['checkTypeComparation','checkBooleanCondition'],list(chain([self.current_method], self.token_value_list)) )
                     self.token_value_list = []
                     if self.token.getValue() == ')':
                         self.getNextToken()
@@ -1920,7 +1919,7 @@ class Syntactic:
                 self.getNextToken()
                 if self.token.getValue() in self.firstSet["BOOLOPERATIONS"] or self.token.getType() in self.firstSet["BOOLOPERATIONS"]:
                     self.boolOperations()
-                    self.semantic.analyze(self.symbol_table, ['checkBooleanCondition'],list(chain([self.current_method], self.token_value_list)) )
+                    self.semantic.analyze(self.symbol_table, ['checkBooleanCondition','checkTypeComparation'],list(chain([self.current_method], self.token_value_list)) )
                     self.token_value_list = []
                     if self.token.getValue() == ')':
                         self.getNextToken()
