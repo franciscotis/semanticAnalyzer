@@ -26,6 +26,8 @@ class Semantic:
                 self.notAllowBooleanAndStringIncrements(tokens_list)
             elif rule == 'checkTypeComparation':
                 self.notAllowComparationBetweenDifferentTypesOfVariables(tokens_list)
+            elif rule == 'verifyIfArithmeticExpressionIsCorrect':
+                self.verifyIfArithmeticExpressionIsCorrect(tokens_list)
 
 
     def printSemanticError(self, lineNumber, errorType, got):
@@ -160,9 +162,34 @@ class Semantic:
         self.current_token_value = 0
 
 
-    # TODO: 7 - Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro).
+    # TODO: 7 - Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro). [FINALIZAR]
     def verifyIfArithmeticExpressionIsCorrect(self, tokens):
-        pass
+        current_context = tokens[0]
+        tokens = tokens[1:]
+        previous_symbol = ''
+        has_arithmetic = False
+        while self.hasNextToken(tokens):
+            token = self.nextToken(tokens)
+            if token.getType() == 'IDE':
+                symbol = self.getSymbol('local', token.getValue(), current_context)
+                if not symbol:
+                    symbol = self.getSymbol('global', token.getValue())
+                    if not symbol:
+                        print(self.printSemanticError(token.current_line, "An identifier must be initialized before use ",token.getValue()))
+                if has_arithmetic:
+                    if previous_symbol != '' and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
+                        print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",token.getValue()))
+                        has_arithmetic = False
+                if symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier():
+                    previous_symbol = symbol
+            elif token.getType() == 'ART':
+                if self.isArithmetic(token.getValue()):
+                    has_arithmetic = True
+                
+        self.current_token_value = 0
+
+
+        
 
     # 8 - Itens de condição em if e while tem que ser booleanos.
     def verifyIfBooleanExpressionIsCorrect(self, tokens):

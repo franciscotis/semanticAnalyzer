@@ -1,43 +1,15 @@
-const {
-    real PI = 3.141526, e = 2.71, g = 9.98;
-}
 
-struct pessoa {
-    var{
-        String cpf, nome;
-        int idade, peso, altura;
-    }
-}
-
-struct funcionario extends pessoa1{
-    var{
-        real salario;
-    }
-}
-
-procedure funcao1(int a, int b){
-    print(a);
-}
-
-procedure funcao2(int a){
-    print(a);
-}
 
 procedure start(){
     var{
-        int a[4] = [1,2,3,4];
+        int a[4] = [1,2,3,4,"oi"];
     }
     const{
         int a = 10, b = 20,c = 30, d = 40;
         boolean boleano = false;
     }
-    print("Inicio de cdigo");
-    s = soma(k, m);
-    if((a+b) != c) then{
-        print("oie");
-    }
 
 
-    print("Digite seu nome: ");
+    print(a+boleano);
 }
 

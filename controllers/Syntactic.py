@@ -20,6 +20,7 @@ class Syntactic:
         self.current_variable_type = ''
         self.current_context = ''
         self.current_var_value = ''
+        self.current_method = ''
         self.token_value_list = []
         self.semantic = semantic
 
@@ -153,7 +154,7 @@ class Syntactic:
             self.getNextToken()
             if self.token.getValue() in self.firstSet["BOOLOPERATIONS2"] or self.token.getType() in self.firstSet["BOOLOPERATIONS2"]:
                 self.boolOperations2()
-        elif self.token.getValue() in self.firstSet["ARITMETICOP"] or self.token.getType() in self.firstSet["ARITMETICOP"]:
+        elif self.token.getValue() in self.firstSet["ARITMETICOP"] or self.token.getType() in self.firstSet["ARITMETICOP"]: 
             self.aritimeticOp()
             if self.token.getValue() in self.firstSet["BOOLOPERATIONS2"] or self.token.getType() in self.firstSet["BOOLOPERATIONS2"]:
                 self.boolOperations2()
