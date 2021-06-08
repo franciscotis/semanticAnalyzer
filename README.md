@@ -61,7 +61,7 @@ CAD  - Cadeia de Caracteres
 [ ] Operações com valores de tipos diferentes não podem ser realizadas, pois a linguagem não permite a conversão de tipos.
 [ ] Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela.
 [x] Não é possível realizar a comparação de valores de tipos diferentes.
-[ ] Não é possível atribuir uma variável sem valor a outra.
+[x] Não é possível atribuir uma variável sem valor a outra.
 [x] Não é possível atribuir um valor a uma constante, após a sua declaração.
 [x] Não é possível fazer incremento em string e em booleano
 [ ] Não é possível declarar tipos diferentes de valores em um array (e.g. int a[] = {1,2,3,"abc",4})

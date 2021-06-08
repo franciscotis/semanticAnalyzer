@@ -1792,6 +1792,7 @@ class Syntactic:
                 self.getNextToken()
                 if self.token.getValue() in self.firstSet["VALUE"] or self.token.getType() in self.firstSet["VALUE"]:
                     self.value()
+                    self.semantic.analyze(self.symbol_table, ['nowAllowAssignNotInitializedVariable'], list(chain([self.current_method, self.declared_function], self.token_value_list)))
                     if self.token.getValue() == ';':
                         self.getNextToken()
                     else:
