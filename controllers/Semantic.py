@@ -28,6 +28,8 @@ class Semantic:
                 self.notAllowComparationBetweenDifferentTypesOfVariables(tokens_list)
             elif rule == 'verifyIfArithmeticExpressionIsCorrect':
                 self.verifyIfArithmeticExpressionIsCorrect(tokens_list)
+            elif rule == 'notAllowAssignNotInitializedVariable':
+                self.notAllowAssignNotInitializedVariable(tokens_list)
 
 
     def printSemanticError(self, lineNumber, errorType, got):
@@ -338,6 +340,14 @@ class Semantic:
             print(self.printSemanticError(last_token.current_line, "You can't compare two different kinds of variables",self.getExpression(values)))
 
 
+    def notAllowAssignNotInitializedVariable(self, tokens):
+        function_name = tokens.pop(0)
+        identifier1, identifier2 = tokens[0], tokens[1]
+        
+        symbol = self.getSymbol('local', identifier2.getValue(), function_name)
+        if(not symbol): return
+        if(symbol.getValue()==''):
+            print(self.printSemanticError(identifier1.current_line, "An identifier must be initialized before assign to a variable", identifier2.getValue()))
 
     
     def notAllowBooleanAndStringIncrements(self, tokens):
