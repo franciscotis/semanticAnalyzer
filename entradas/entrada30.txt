@@ -1,0 +1,72 @@
+struct Pessoa 
+{
+	var {
+		string nome;
+		int idade;
+		real salario;
+	}
+
+}
+
+const
+{
+  int x = 1;
+  string s = "teste";
+  real z = 5.3;
+
+}
+
+var
+{
+   int a;
+   int b;
+   int c;
+   int d;
+   int m[5];
+   int n[5][5];
+   int w;
+   Pessoa p;
+}
+
+function int Soma (int c, int d)
+{
+    var
+    {
+       int e;
+    }
+    e = c + d;
+    m[1] = e;
+    return e;
+}
+procedure start ()
+{
+     Soma (b, a);
+    if ( a > c ) then
+    {
+	print("Oi mundo!");
+        read(w);
+        read(p.idade);
+        print(w + 8.5);
+    }
+    else
+    {
+	
+    while(a > 7)
+    {
+        w = 5.4;		
+    }
+    }
+    
+    if (a > b) then
+    {
+	a = b;
+    }
+    if ((true == x) && (false == y)) then
+    {
+	a = b;
+    }
+    if ((a < b) || (c < w)) then
+    {
+	a = b;
+    }
+}

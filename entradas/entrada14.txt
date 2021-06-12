@@ -1,0 +1,33 @@
+const
+{
+  int x = 1;
+  string s = "teste";
+  real a = 5.3;
+
+}
+
+var
+{
+   int a;
+   int b;
+   int c;
+   int d[10];
+   real w;
+}
+
+procedure start ()
+{
+    if (a > ) then
+    {
+	a = b;
+    }
+    if (x == false && ) then
+    {
+	a = b;
+    }
+    if (|| c < w) then
+    {
+	a = b;
+    }
+
+}

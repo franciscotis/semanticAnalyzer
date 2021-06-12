@@ -1,0 +1,29 @@
+1 PRE const
+2 DEL {
+3 PRE int
+3 IDE x
+3 DEL ;
+ERROR on line 3: Expecting [=, []. Got: ';'
+4 PRE string
+4 IDE s
+4 DEL ;
+5 PRE real
+5 IDE z
+5 DEL ;
+7 DEL }
+9 PRE var
+10 DEL {
+11 PRE int
+11 IDE a
+11 DEL ;
+12 PRE int
+12 IDE b
+12 DEL ;
+13 DEL }
+16 PRE procedure
+16 PRE start
+16 DEL (
+16 DEL )
+17 DEL {
+19 DEL }
+ERROR on line 19: Expecting [var, const, }, ++, --, typedef, struct, print, IDE, read, global, local, while, if]. Got: '}'

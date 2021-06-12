@@ -168,6 +168,7 @@ class Semantic:
     def verifyIfArithmeticExpressionIsCorrect(self, tokens):
         current_context = tokens[0]
         tokens = tokens[1:]
+        values = list(map(self.getTokenValue,tokens))
         previous_symbol = ''
         has_arithmetic = False
         while self.hasNextToken(tokens):
@@ -180,9 +181,9 @@ class Semantic:
                         print(self.printSemanticError(token.current_line, "An identifier must be initialized before use ",token.getValue()))
                 if has_arithmetic:
                     if previous_symbol != '' and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
-                        print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",token.getValue()))
+                        print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
                         has_arithmetic = False
-                if symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier():
+                if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
                     previous_symbol = symbol
             elif token.getType() == 'ART':
                 if self.isArithmetic(token.getValue()):
@@ -310,7 +311,7 @@ class Semantic:
                     elif symbol and symbol.getAssignmentType() != current_type.getAssignmentType():
                         valor_verdadeiro = False
                         relational_value = False
-                if type(current_type == str):
+                if type(current_type)  == str:
                     if (symbol and current_type!= '' and current_type!= symbol.getIdentifier()) or (symbol and current_type == ''):
                         current_type = symbol
                 elif (symbol and current_type!= '' and current_type.getIdentifier()!= symbol.getIdentifier()) or (symbol and current_type == ''):
@@ -335,7 +336,9 @@ class Semantic:
                 if self.isLogical(token.getValue()):
                     expressions_list.append(valor_verdadeiro)
                     valor_verdadeiro = True
-                    current_type = ''    
+                    current_type = '' 
+            elif token.getValue() == ')':
+                expressions_list.append(valor_verdadeiro)
         if False in expressions_list:
             print(self.printSemanticError(last_token.current_line, "You can't compare two different kinds of variables",self.getExpression(values)))
 

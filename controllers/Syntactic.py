@@ -29,14 +29,13 @@ class Syntactic:
         self.inicio()
         self.lexical.file.print_file(self.token_list)
 
-
-
-
     def getNextToken(self):
-        self.token = self.lexical.obterToken()
-        if self.token is not None:
+        try:
+            self.token = self.lexical.obterToken()
             self.token_list.append(self.token.toString())
-            self.token_value_list.append(self.token)
+        except:
+            print("                         End of tokens                         ")
+            return
     
     def getError(self, sync_tokens:list):
         while(self.token is not None):
@@ -58,27 +57,28 @@ class Syntactic:
 
 
     def inicio(self):
-        if self.token is not None:
-            if(self.token.getValue() in self.firstSet["TYPEDEFDECLARATION"]):
-                self.typedefDeclaration()
-                self.inicio()
-            elif(self.token.getValue() in self.firstSet["STRUCTDECLARATION"]):
-                self.inside_struct = True
-                self.structDeclaration()
-                self.inside_struct = False
-                self.inicio()
-            elif(self.token.getValue() in self.firstSet["VARDECLARATION"]):
-                self.varDeclaration()
-                self.header1()
-            elif(self.token.getValue() in self.firstSet["CONSTDECLARATION"]):
-                self.constDeclaration()
-                self.header2()
-            elif(self.token.getValue() in self.firstSet["METHODS"]):
-                self.methods()
-            else:
-                self.token_list.append(self.printError(self.token.current_line, self.firstSet["INICIO"], self.token.getValue())) 
-                self.getError(self.followSet["INICIO"])
-
+        try:
+            if self.token is not None:
+                if(self.token.getValue() in self.firstSet["TYPEDEFDECLARATION"]):
+                    self.typedefDeclaration()
+                    self.inicio()
+                elif(self.token.getValue() in self.firstSet["STRUCTDECLARATION"]):
+                    self.structDeclaration()
+                    self.inicio()
+                elif(self.token.getValue() in self.firstSet["VARDECLARATION"]):
+                    self.varDeclaration()
+                    self.header1()
+                elif(self.token.getValue() in self.firstSet["CONSTDECLARATION"]):
+                    self.constDeclaration()
+                    self.header2()
+                elif(self.token.getValue() in self.firstSet["METHODS"]):
+                    self.methods()
+                else:
+                    self.token_list.append(self.printError(self.token.current_line, self.firstSet["INICIO"], self.token.getValue())) 
+                    self.getError(self.followSet["INICIO"])
+        except:
+            print("                         Um erro inesperado ocorreu.                         ")
+            
     def header1(self):
         if self.token is not None:
             if self.token.getValue() in self.firstSet["TYPEDEFDECLARATION"]:
@@ -1241,16 +1241,23 @@ class Syntactic:
             self.aritmeticValue()
         elif self.token.getValue() == '(':
             self.getNextToken()
-            if self.token.getValue() in self.firstSet["ARITMETICOP"] or self.token.getType() in self.firstSet["ARITMETICOP"]:
-                self.aritimeticOp()
+            if self.token.getValue() in self.firstSet["LOGICALOP"] or self.token.getType() in self.firstSet["LOGICALOP"]:
+                self.logicalOp()
                 if self.token.getValue() == ")":
                     self.getNextToken()
+                    if self.token.getValue() in self.firstSet["LOGICSYMBOL"]:
+                        self.logicSymbol()
+                        if self.token.getValue() in self.firstSet["OPBOOLVALUE2"] or self.token.getType() in self.firstSet["OPBOOLVALUE2"]:
+                            self.opBoolValue2()
+                        else:
+                            self.token_list.append(self.printError(self.token.current_line, self.firstSet["OPBOOLVALUE2"], self.token.getValue()))
                 else:
                     self.token_list.append(self.printError(self.token.current_line, [")"], self.token.getValue()))
             else:
                 self.token_list.append(self.printError(self.token.current_line, self.firstSet["ARITMETICOP"], self.token.getValue()))
         else:
             self.token_list.append(self.printError(self.token.current_line, self.firstSet["OpNegate"], self.token.getValue()))  
+
 
     def opMult(self):
         if self.token.getValue() in self.firstSet["OpNegate"] or self.token.getType() in self.firstSet["OpNegate"]:
@@ -1278,9 +1285,12 @@ class Syntactic:
 
     def aritimeticOp(self):
         if self.token.getValue() in self.firstSet["Opmult"] or self.token.getType() in self.firstSet["Opmult"]:
+            
             self.opMult()
             if self.token.getValue() in self.firstSet["OPMULT2"]:
                 self.opMult2()
+            
+            
         else:
             self.token_list.append(self.printError(self.token.current_line, self.firstSet["ARITMETICOP"], self.token.getValue()))
 
@@ -1295,10 +1305,11 @@ class Syntactic:
     def aritSymbol(self):
         if self.token.getValue() =="+":
             self.getNextToken()
-        elif self.token.getValue =='-':
+        elif self.token.getValue() =='-':
             self.getNextToken()
         else:
             self.token_list.append(self.printError(self.token.current_line, self.firstSet["ARITSYMBOL"], self.token.getValue()))
+    
     
     def opBoolValue(self):
         if self.token.getValue() in self.firstSet["ARITMETICOP"] or self.token.getType() in self.firstSet["ARITMETICOP"]:
@@ -1375,16 +1386,9 @@ class Syntactic:
     def logicalOp(self):
         if self.token.getValue() in self.firstSet["OPBOOLVALUE2"] or self.token.getType() in self.firstSet["OPBOOLVALUE2"]:
             self.opBoolValue2()
-            if self.token.getValue() in self.firstSet["LOGICSYMBOL"]:
-                self.logicSymbol()
-                if self.token.getValue() in self.firstSet["OPBOOLVALUE2"] or self.token.getType() in self.firstSet["OPBOOLVALUE2"]:
-                    self.opBoolValue2()
-                else:
-                    self.token_list.append(self.printError(self.token.current_line, self.firstSet["OPBOOLVALUE2"], self.token.getValue()))
-            else:
-                self.token_list.append(self.printError(self.token.current_line, self.firstSet["LOGICSYMBOL"], self.token.getValue()))
         else:
             self.token_list.append(self.printError(self.token.current_line, self.firstSet["LOGICALOP"], self.token.getValue()))
+
 
     def negBoolValue(self):
         if self.token.getValue() == "!":
@@ -1683,11 +1687,17 @@ class Syntactic:
 
     def comando(self):
         if self.token.getValue() in self.firstSet["PRINT"]:
+            self.token_value_list = []
             self.printFunction()
+            self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.current_method], self.token_value_list)) )
+            self.token_value_list = []
         elif self.token.getType() in self.firstSet["FUNCTIONCALL"] and self.token.getType() in self.firstSet["ATRIBUICAO"]:
             self.preFuncionAtribuicao()
         elif self.token.getValue() in self.firstSet["ATRIBUICAO"]:
+            self.token_value_list = []
             self.atribuicao()
+            self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.current_method], self.token_value_list)) )
+            self.token_value_list = []
         elif self.token.getValue() in self.firstSet["READ"]:
             self.read()
         elif self.token.getValue() in self.firstSet["INCREMENTOP"]:
@@ -1703,7 +1713,10 @@ class Syntactic:
             else:
                  self.token_list.append(self.printError(self.token.current_line,[";"], self.token.getValue()))
         elif self.token.getValue() in self.firstSet["WHILE"]:
+            self.token_value_list = []
             self.whileFunction()
+            self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.current_method], self.token_value_list)) )
+            self.token_value_list = []
         elif self.token.getValue() in self.firstSet["CONDITIONAL"]:
             self.conditional()
         elif self.token.getValue() in self.firstSet["TYPEDEFDECLARATION"]:
@@ -1728,7 +1741,7 @@ class Syntactic:
             elif self.token.getValue() == '=':
                 self.token_value_list = []
                 self.atribuicao(False)
-                self.semantic.analyze(self.symbol_table, ['notAllowAConstraintToReceiveValue'],list(chain([self.current_method, self.declared_function], self.token_value_list)))
+                self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect','notAllowAConstraintToReceiveValue'],list(chain([self.current_method, self.declared_function], self.token_value_list)))
                 self.token_value_list = []
             elif self.token.getValue() == '++':
                 self.incrementOp(False)
@@ -1894,7 +1907,7 @@ class Syntactic:
                 self.getNextToken()
                 if self.token.getValue() in self.firstSet["BOOLOPERATIONS"] or self.token.getType() in self.firstSet["BOOLOPERATIONS"]:
                     self.boolOperations()
-                    self.semantic.analyze(self.symbol_table, ['checkTypeComparation','checkBooleanCondition'],list(chain([self.current_method], self.token_value_list)) )
+                    self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect','checkTypeComparation','checkBooleanCondition'],list(chain([self.current_method], self.token_value_list)) )
                     self.token_value_list = []
                     if self.token.getValue() == ')':
                         self.getNextToken()
@@ -1937,6 +1950,8 @@ class Syntactic:
                                     self.codigo()
                                     if self.token.getValue() =='}':
                                         self.getNextToken()
+                                        if self.token.getValue() in self.firstSet["ELSEPART"] or self.token.getType() in self.firstSet["ELSEPART"]:
+                                            self.elsePart()
                                     else:
                                         self.token_list.append(self.printError(self.token.current_line, ["}"], self.token.getValue()))
                                 else:

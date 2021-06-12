@@ -1,0 +1,19 @@
+const
+{
+  int  x;
+  string s;
+  real z;
+
+}
+
+var
+{
+   int  a;
+   int  b;
+}
+
+
+procedure start ()
+{
+    
+}

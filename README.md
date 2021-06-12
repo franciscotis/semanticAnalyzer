@@ -65,4 +65,6 @@ CAD  - Cadeia de Caracteres
 [x] Não é possível atribuir um valor a uma constante, após a sua declaração.
 [x] Não é possível fazer incremento em string e em booleano
 [ ] Não é possível declarar tipos diferentes de valores em um array (e.g. int a[] = {1,2,3,"abc",4})
+[ ] Typedef tem que redefinir tipos permitidos
+[ ] O retorno da função tem que ser igual ao valor retornado
 ```

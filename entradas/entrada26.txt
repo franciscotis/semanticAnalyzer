@@ -1,0 +1,30 @@
+const
+{
+  int  x = 1;
+}
+
+var
+{
+   int a;
+   int b;
+}
+
+function int Soma(int c)
+{
+    var
+    {
+       int e;
+    }
+    e = c + d;	
+}
+
+procedure int Sub()
+{
+	a = 2 + 4;
+	return a;
+}
+
+procedure start ()
+{
+    Soma(b, a);
+}

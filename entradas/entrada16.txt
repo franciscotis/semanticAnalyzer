@@ -1,0 +1,27 @@
+const
+{
+  int x = 1;
+  string s = "teste";
+  real z = 5.3;
+
+}
+
+var
+{
+   int a;
+   int b;
+   int d[10];
+   int c;
+   real w;
+}
+
+procedure start ()
+{
+    if ( a > c ) then
+    {
+	 	w = 5.4;
+    
+    else
+    		w = 2.4;
+    }
+}

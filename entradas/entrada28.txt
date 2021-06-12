@@ -1,0 +1,28 @@
+constantes
+{
+  inteiro  x = 1;
+}
+
+variaveis
+{
+   inteiro a;
+   inteiro b;
+}
+
+funcao inteiro Soma (inteiro c, inteiro d)
+{
+    variaveis
+    {
+       inteiro e;
+    }
+    e = c + d;	
+    se (e > 10)
+    {
+       return e;
+    }
+}
+
+algoritmo
+{
+    Soma (b, a);
+}

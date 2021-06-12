@@ -1,15 +1,15 @@
-
-
-procedure start(){
-    var{
-        int a[4] = [1,2,3,4,"oi"];
-    }
-    const{
-        int a = 10, b = 20,c = 30, d = 40;
-        boolean boleano = false;
-    }
-
-
-    print(a+boleano);
+const
+{
+  int  x = 1;
 }
 
+var
+{
+   int a;
+   int b;
+}
+
+procedure start ()
+{
+    
+}

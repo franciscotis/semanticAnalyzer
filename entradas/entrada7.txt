@@ -1,0 +1,31 @@
+// Inicializacao de variaveis (Com erros)
+
+const
+{
+  int x = 1;
+  string s = "teste";
+  real z = 5.3;
+
+}
+
+var
+{
+   int a = , b = ;
+
+}
+
+
+procedure teste()
+{
+    var
+    {
+       int c, d;
+       real e = 8.9;
+    }
+
+}
+
+procedure start ()
+{
+
+}
