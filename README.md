@@ -48,23 +48,64 @@ CAD  - Cadeia de Caracteres
 
 ```
 
-### Lista de Regras Semânticas:
+## Listas de Regras Semânticas:
+
+### Variáveis
+
 ```
-[ ] Index de vetor/matriz tem que ser um número inteiro
+
 [x] Variável ou constante tem que ser inicializada antes de a utilizar.
-[x] Função ou procedure tem que ser declarada antes de a utilizar.
-[x] Struct tem que herdar de outra Struct existente
-[ ] Sobrecarga realmente tem que ser sobrecarga (e não sobrescrita).
-[x] A função tem que ser chamada com a quantidade de parâmetros e tipos corretos.
-[ ] Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro).
-[x] Itens de condição em if e while tem que ser booleanos.
-[ ] Operações com valores de tipos diferentes não podem ser realizadas, pois a linguagem não permite a conversão de tipos.
+[ ] Index de vetor/matriz tem que ser um número inteiro
 [ ] Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela.
-[x] Não é possível realizar a comparação de valores de tipos diferentes.
+[ ] Não é possível declarar uma variável global se outra com o mesmo nome já foi declarada anteriormente.
+[ ] Não é possível declarar uma variável local se outra com o mesmo nome já foi declara anteriormente.
+[ ] É possível declarar uma variável local com o mesmo nome de uma variável global.
 [x] Não é possível atribuir uma variável sem valor a outra.
 [x] Não é possível atribuir um valor a uma constante, após a sua declaração.
-[x] Não é possível fazer incremento em string e em booleano
 [ ] Não é possível declarar tipos diferentes de valores em um array (e.g. int a[] = {1,2,3,"abc",4})
-[ ] Typedef tem que redefinir tipos permitidos
-[ ] O retorno da função tem que ser igual ao valor retornado
+[ ] É possível fazer a concatenação de duas strings a partir do operador '+'
+
 ```
+
+### Typedef
+
+```
+
+[ ] Typedef tem que redefinir tipos permitidos
+[ ] Não é permitido fazer typedefs com o mesmo identificador em escopos diferentes
+
+```
+
+### Funções
+
+```
+
+[x] Função ou procedure tem que ser declarada antes de a utilizar.
+[x] A função tem que ser chamada com a quantidade de parâmetros e tipos corretos.
+[ ] O retorno da função tem que ser igual ao valor retornado
+[ ] Não é possível fazer overloading do procedure start
+[ ] Para ter a sobrecarga de métodos em geral, é avaliado a quantidade e tipo de parâmetros além do tipo de retorno
+[ ] É possível ter uma função com o mesmo nome de um procedimento.
+
+```
+
+### Structs
+
+```
+
+[x] Struct tem que herdar de outra Struct existente
+
+```
+
+### Operações / Expressões / Comparações
+
+```
+
+[ ] Operações com valores de tipos diferentes não podem ser realizadas, pois a linguagem não permite a conversão de tipos.
+[ ] Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro).
+[x] Não é possível realizar a comparação de valores de tipos diferentes.
+[x] Não é possível fazer incremento em string e em booleano
+[x] Itens de condição em if e while tem que ser booleanos.
+[ ] Dentro do print pode ser passado como parâmetro tudo que retorna valor, incluindo expressões no geral.
+
+
