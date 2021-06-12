@@ -180,7 +180,7 @@ class Semantic:
                     if not symbol:
                         print(self.printSemanticError(token.current_line, "An identifier must be initialized before use ",token.getValue()))
                 if has_arithmetic:
-                    if previous_symbol != '' and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
+                    if  previous_symbol != '' and symbol is not None and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
                         print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
                         has_arithmetic = False
                 if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
@@ -251,10 +251,11 @@ class Semantic:
     
     # 13 - Não é possível atribuir um valor a uma constante, após a sua declaração.
     def notAllowAConstraintToReceiveValue(self,tokens):
-        current_context = tokens.pop(0)
-        values = list(map(self.getTokenValue,tokens))
+        tokens2 = tokens.copy()
+        current_context = tokens2.pop(0)
+        values = list(map(self.getTokenValue,tokens2))
         variable_name = values.pop(0)
-        variable_token = tokens.pop(0)
+        variable_token = tokens2.pop(0)
         variable_symbol = self.getSymbol('local',variable_name,current_context)
         if variable_symbol!= None:
             if variable_symbol.isAConstSymbol():
@@ -344,8 +345,9 @@ class Semantic:
 
 
     def notAllowAssignNotInitializedVariable(self, tokens):
-        function_name = tokens.pop(0)
-        identifier1, identifier2 = tokens[0], tokens[1]
+        tokens2 = tokens.copy()
+        function_name = tokens2.pop(0)
+        identifier1, identifier2 = tokens2[0], tokens2[1]
         
         symbol = self.getSymbol('local', identifier2.getValue(), function_name)
         if(not symbol): return

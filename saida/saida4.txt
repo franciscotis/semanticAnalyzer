@@ -40,3 +40,24 @@
 18 ART +
 18 IDE c
 18 DEL ;
+19 PRE var
+ERROR on line 19: Expecting [}]. Got: 'var'
+20 DEL {
+21 PRE int
+21 IDE c
+21 DEL ;
+22 PRE int
+22 IDE d
+22 DEL ;
+23 PRE real
+23 IDE e
+23 DEL ;
+24 DEL }
+26 DEL }
+28 PRE procedure
+28 PRE start
+28 DEL (
+28 DEL )
+29 DEL {
+31 DEL }
+ERROR on line 31: Expecting [var, const, }, ++, --, typedef, struct, print, IDE, read, global, local, while, if]. Got: '}'

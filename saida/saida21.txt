@@ -48,3 +48,10 @@
 21 REL >
 21 NRO 7
 21 DEL )
+22 DEL {
+23 IDE a
+23 REL =
+23 NRO 2
+23 DEL ;
+25 DEL }
+26 DEL }

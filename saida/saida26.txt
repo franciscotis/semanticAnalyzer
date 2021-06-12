@@ -35,3 +35,35 @@
 18 ART +
 18 IDE d
 18 DEL ;
+19 DEL }
+ERROR on line 19: Expecting [return]. Got: '}'
+21 PRE procedure
+21 PRE int
+21 IDE Sub
+21 DEL (
+21 DEL )
+22 DEL {
+23 IDE a
+23 REL =
+23 NRO 2
+23 ART +
+23 NRO 4
+23 DEL ;
+24 PRE return
+ERROR on line 24: Expecting [}]. Got: 'return'
+24 IDE a
+24 DEL ;
+25 DEL }
+27 PRE procedure
+27 PRE start
+27 DEL (
+27 DEL )
+28 DEL {
+29 IDE Soma
+29 DEL (
+29 IDE b
+29 DEL ,
+29 IDE a
+29 DEL )
+29 DEL ;
+30 DEL }

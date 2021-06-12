@@ -33,6 +33,7 @@ class Syntactic:
         try:
             self.token = self.lexical.obterToken()
             self.token_list.append(self.token.toString())
+            self.token_value_list.append(self.token)
         except:
             print("                         End of tokens                         ")
             return
@@ -57,27 +58,24 @@ class Syntactic:
 
 
     def inicio(self):
-        try:
-            if self.token is not None:
-                if(self.token.getValue() in self.firstSet["TYPEDEFDECLARATION"]):
-                    self.typedefDeclaration()
-                    self.inicio()
-                elif(self.token.getValue() in self.firstSet["STRUCTDECLARATION"]):
-                    self.structDeclaration()
-                    self.inicio()
-                elif(self.token.getValue() in self.firstSet["VARDECLARATION"]):
-                    self.varDeclaration()
-                    self.header1()
-                elif(self.token.getValue() in self.firstSet["CONSTDECLARATION"]):
-                    self.constDeclaration()
-                    self.header2()
-                elif(self.token.getValue() in self.firstSet["METHODS"]):
-                    self.methods()
-                else:
-                    self.token_list.append(self.printError(self.token.current_line, self.firstSet["INICIO"], self.token.getValue())) 
-                    self.getError(self.followSet["INICIO"])
-        except:
-            print("                         Um erro inesperado ocorreu.                         ")
+        if self.token is not None:
+            if(self.token.getValue() in self.firstSet["TYPEDEFDECLARATION"]):
+                self.typedefDeclaration()
+                self.inicio()
+            elif(self.token.getValue() in self.firstSet["STRUCTDECLARATION"]):
+                self.structDeclaration()
+                self.inicio()
+            elif(self.token.getValue() in self.firstSet["VARDECLARATION"]):
+                self.varDeclaration()
+                self.header1()
+            elif(self.token.getValue() in self.firstSet["CONSTDECLARATION"]):
+                self.constDeclaration()
+                self.header2()
+            elif(self.token.getValue() in self.firstSet["METHODS"]):
+                self.methods()
+            else:
+                self.token_list.append(self.printError(self.token.current_line, self.firstSet["INICIO"], self.token.getValue())) 
+                self.getError(self.followSet["INICIO"])
             
     def header1(self):
         if self.token is not None:
@@ -446,7 +444,7 @@ class Syntactic:
         if self.token.getValue()== '[':
             self.getNextToken()
             if self.token.getValue() in self.firstSet["ARITMETICOP"] or  self.token.getType() in self.firstSet["ARITMETICOP"]:
-                self.aritmeticOp()
+                self.aritimeticOp()
                 if self.token.getValue() == ']':
                     self.getNextToken()
                     if self.token.getValue() in self.firstSet["CONTMATRIZ"]:
@@ -1696,7 +1694,7 @@ class Syntactic:
         elif self.token.getValue() in self.firstSet["ATRIBUICAO"]:
             self.token_value_list = []
             self.atribuicao()
-            self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.current_method], self.token_value_list)) )
+            self.semantic.analyze(self.symbol_table, ['notAllowAssignNotInitializedVariable','verifyIfArithmeticExpressionIsCorrect'],list(chain([self.current_method], self.token_value_list)) )
             self.token_value_list = []
         elif self.token.getValue() in self.firstSet["READ"]:
             self.read()
@@ -1730,6 +1728,7 @@ class Syntactic:
 
     def preFuncionAtribuicao(self):
         if self.token.getType() == "IDE":
+            self.token_value_list = []
             self.declared_function = self.token
             self.identificador()
             if self.token.getValue() == '(':
@@ -1739,9 +1738,8 @@ class Syntactic:
                 self.semantic.analyze(self.symbol_table, ['functionCallParameters'],list(chain([self.current_method, self.declared_function], self.token_value_list)), self.functions_table)
                 self.token_value_list = []
             elif self.token.getValue() == '=':
-                self.token_value_list = []
                 self.atribuicao(False)
-                self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect','notAllowAConstraintToReceiveValue'],list(chain([self.current_method, self.declared_function], self.token_value_list)))
+                self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect','notAllowAConstraintToReceiveValue', 'notAllowAssignNotInitializedVariable'],list(chain([self.current_method, self.declared_function], self.token_value_list)))
                 self.token_value_list = []
             elif self.token.getValue() == '++':
                 self.incrementOp(False)
@@ -1806,7 +1804,6 @@ class Syntactic:
                 self.getNextToken()
                 if self.token.getValue() in self.firstSet["VALUE"] or self.token.getType() in self.firstSet["VALUE"]:
                     self.value()
-                    self.semantic.analyze(self.symbol_table, ['notAllowAssignNotInitializedVariable'], list(chain([self.current_method, self.declared_function], self.token_value_list)))
                     if self.token.getValue() == ';':
                         self.getNextToken()
                     else:

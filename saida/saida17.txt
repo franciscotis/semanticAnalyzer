@@ -56,10 +56,10 @@
 22 DEL ;
 23 DEL }
 24 PRE else
-ERROR on line 24: Expecting [}]. Got: 'else'
 25 DEL {
 26 IDE w
 26 REL =
 26 NRO 2.4
 26 DEL ;
 27 DEL }
+28 DEL }

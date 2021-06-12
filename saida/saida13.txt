@@ -63,18 +63,16 @@
 24 DEL (
 24 IDE x
 24 REL ==
-ERROR on line 24: Expecting [)]. Got: '=='
 24 PRE true
 24 DEL )
 24 LOG &&
-ERROR on line 24: Expecting [then]. Got: '&&'
-ERROR on line 24: Expecting [}]. Got: '&&'
 24 DEL (
 24 IDE y
 24 REL ==
 24 PRE false
 24 DEL )
 24 DEL )
+ERROR on line 24: Expecting [!=, &&, ||, ==, =, <, >, ==, <=, >=]. Got: ')'
 24 PRE then
 25 DEL {
 26 IDE a
@@ -87,9 +85,12 @@ ERROR on line 24: Expecting [}]. Got: '&&'
 28 DEL (
 28 IDE a
 28 REL <
+ERROR on line 28: Expecting [)]. Got: '<'
 28 IDE b
 28 DEL )
 28 LOG ||
+ERROR on line 28: Expecting [then]. Got: '||'
+ERROR on line 28: Expecting [}]. Got: '||'
 28 DEL (
 28 IDE c
 28 REL <

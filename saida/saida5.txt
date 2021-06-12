@@ -31,3 +31,13 @@
 12 DEL ]
 12 DEL [
 12 NRO 5
+12 DEL ]
+12 DEL ;
+13 DEL }
+15 PRE procedure
+15 PRE start
+15 DEL (
+15 DEL )
+16 DEL {
+18 DEL }
+ERROR on line 18: Expecting [var, const, }, ++, --, typedef, struct, print, IDE, read, global, local, while, if]. Got: '}'
