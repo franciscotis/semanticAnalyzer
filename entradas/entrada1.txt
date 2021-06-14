@@ -1,3 +1,11 @@
+var{
+  int oioi,abc;
+}
+
+const{
+  real oioi;
+}
+
 function int roi(){
   var {
     int i = 0;
@@ -6,26 +14,15 @@ function int roi(){
 }
 
 
-<<<<<<< HEAD
 procedure start ()
 {
 
   var{
     int oi[2], k = 20;
+    real abc;
   }
+  
 
   oi[k] = k;
     
-=======
-procedure start (){
-  var {
-    int a1=1, b1=2;
-    string s1 = "string1";
-    boolean bool = true;
-  }  
-  if(a>b) then {
-    s1 = bool;
-  }
-  a1 = s1;
->>>>>>> 462ebd6ce45555387810827f2162cddd5da54435
 }

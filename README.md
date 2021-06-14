@@ -56,10 +56,10 @@ CAD  - Cadeia de Caracteres
 
 [x] Variável ou constante tem que ser inicializada antes de a utilizar.
 [x] Index de vetor/matriz tem que ser um número inteiro
-[ ] Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela.
-[ ] Não é possível declarar uma variável global se outra com o mesmo nome já foi declarada anteriormente.
-[ ] Não é possível declarar uma variável local se outra com o mesmo nome já foi declara anteriormente.
-[ ] É possível declarar uma variável local com o mesmo nome de uma variável global.
+[x] Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela.
+[x] Não é possível declarar uma variável global se outra com o mesmo nome já foi declarada anteriormente.
+[x] Não é possível declarar uma variável local se outra com o mesmo nome já foi declara anteriormente.
+[x] É possível declarar uma variável local com o mesmo nome de uma variável global.
 [x] Não é possível atribuir uma variável sem valor a outra.
 [x] Não é possível atribuir um valor a uma constante, após a sua declaração.
 [ ] Não é possível declarar tipos diferentes de valores em um array (e.g. int a[] = {1,2,3,"abc",4})

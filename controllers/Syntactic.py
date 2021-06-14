@@ -363,18 +363,21 @@ class Syntactic:
     def varId(self):
         if self.token.getType() == "IDE":
             symbol = Symbol(self.token.getValue(), 'var', self.current_variable_type)
+            self.semantic.analyze(self.symbol_table, ['verifyIfGlobalVariableAlreadyExists'], list(chain([self.token], [self.inside_method], [self.inside_struct], [self.current_method])), self.functions_table)
             if self.inside_method:
                 self.symbol_table["local"][self.current_method].append(symbol)
                 self.current_symbol = symbol
+                symbol.setScope('local')
             else:
                 if self.inside_struct:
                     self.symbol_table["local"][self.current_struct].append(symbol)
                     self.current_symbol = symbol
+                    symbol.setScope('local')
                 else:
                     self.symbol_table["global"].append(symbol)
                     self.current_symbol = symbol
+                    symbol.setScope('global')
             if self.token.getType() == "IDE":
-                self.semantic.analyze(self.symbol_table, ['verifyIfIdentifierExists'],[self.token], self.functions_table)
                 self.getNextToken() 
             #self.identificador()
             if self.token.getValue() in self.firstSet["VAREXP"]:
@@ -666,20 +669,23 @@ class Syntactic:
     
     def constId(self):
         if self.token.getType() == "IDE":
+            self.semantic.analyze(self.symbol_table, ['verifyIfGlobalVariableAlreadyExists'], list(chain([self.token], [self.inside_method], [self.inside_struct], [self.current_method])), self.functions_table)
             symbol = Symbol(self.token.getValue(), 'var', self.current_variable_type)
             symbol.setIsConst(self.is_const)
             if self.inside_method:
                 self.symbol_table["local"][self.current_method].append(symbol)
                 self.current_symbol = symbol
+                symbol.setScope('local')
             else:
                 if self.inside_struct:
                     self.symbol_table["local"][self.current_struct].append(symbol)
                     self.current_symbol = symbol
+                    symbol.setScope('local')
                 else:
                     self.symbol_table["global"].append(symbol)
                     self.current_symbol = symbol
+                    symbol.setScope('global')
             if self.token.getType() == "IDE":
-                self.semantic.analyze(self.symbol_table, ['verifyIfIdentifierExists'],[self.token], self.functions_table)
                 self.getNextToken() 
             if self.token.getValue() in self.firstSet["CONSTEXP"]:
                 self.constExp()

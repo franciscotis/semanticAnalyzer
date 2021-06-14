@@ -18,6 +18,7 @@ class Symbol:
         self.value = ''
         self.isConst = False
         self.assignment_type = ''
+        self.scope = ''
         
 
     def setAssignmentType(self,type):
@@ -52,6 +53,12 @@ class Symbol:
 
     def getValue(self):
         return self.value
+
+    def getScope(self):
+        return self.scope
+
+    def setScope(self, scope):
+        self.scope = scope
 
     def toString(self):
         print(f"{self.identifier} {self.identifier_type} {self.token_type} {self.value}")

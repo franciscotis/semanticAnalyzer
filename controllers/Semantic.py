@@ -32,6 +32,8 @@ class Semantic:
                 self.notAllowAssignNotInitializedVariable(tokens_list)
             elif rule == 'verifyIfVetorIndexIsInteger':
                 self.verifyIfVetorIndexIsInteger(tokens_list)
+            elif rule == 'verifyIfGlobalVariableAlreadyExists':
+                self.verifyIfGlobalVariableAlreadyExists(tokens_list)
 
 
     def printSemanticError(self, lineNumber, errorType, got):
@@ -391,15 +393,16 @@ class Semantic:
         if(not symbol1 or not symbol2): return
         if(symbol2.getValue()==''):
             print(self.printSemanticError(identifier1.current_line, "An identifier must be initialized before assign to a variable", identifier2.getValue()))
-        elif(symbol1.getAssignmentType()!=symbol2.getAssignmentType()):
+        elif(symbol1.getTokenType()!=symbol2.getTokenType()):
             print(self.printSemanticError(identifier1.current_line, "Variables must be the same type", identifier2.getValue()))
     
     def notAllowBooleanAndStringIncrements(self, tokens):
-        function_name = tokens.pop(0)
-        values = list(map(self.getTokenValue, tokens))
+        tokens2 = tokens.copy()
+        function_name = tokens2.pop(0)
+        values = list(map(self.getTokenValue, tokens2))
         
         index  = values.index('++') if('++' in values) else values.index('--')
-        token1, token2 = tokens[index-1], tokens[index+1]
+        token1, token2 = tokens2[index-1], tokens2[index+1]
         identifier = token1 if(token1.getType()=='IDE') else token2
         
         symbol = self.getSymbol('local', identifier.getValue(), function_name)
@@ -408,3 +411,20 @@ class Semantic:
         if(symbol.getAssignmentType()=='BOOLEAN' or symbol.getAssignmentType()=='STRING'):
             print(self.printSemanticError(identifier.current_line, "You cannot increment/decrement boolean or string variables ", identifier.getValue()))
     
+
+    def verifyIfGlobalVariableAlreadyExists(self, tokens):
+        identifier, inside_method, inside_struct, current_method = tokens[0], tokens[1], tokens[2], tokens[3]
+        encontrado = False
+        if inside_method or inside_struct:
+            tabela_metodo = self.symbol_table['local'][current_method]
+            for simbolo in tabela_metodo:
+                if identifier.getValue() == simbolo.getIdentifier():
+                    encontrado = True
+        else:
+            for simbolo in self.symbol_table['global']:
+                if identifier.getValue() == simbolo.getIdentifier():
+                    encontrado = True
+        
+        if encontrado:
+            print(self.printSemanticError(identifier.current_line, f'{ "Local" if inside_method or inside_struct else "Global"} Variable already declared ',identifier.getValue()))
+        
