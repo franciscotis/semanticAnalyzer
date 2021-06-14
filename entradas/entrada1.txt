@@ -31,15 +31,13 @@ procedure teste(){
   print("eae");
 }
 
-procedure teste(int k){
-  print("eae");
-}
+
 
 procedure teste(int k, real k){
   print("eae");
 }
 
-function int teste(string a){
+function real teste(int a){
   print("shalom")
   return 0;
 }
@@ -51,6 +49,8 @@ procedure start ()
     int oi[2], k = 20;
     pess abc;
   }
+
+  k = teste(1) + k - 20;
 
 
   typedef Pessoa oi;
