@@ -1,15 +1,18 @@
-const
-{
-  int  x = 1;
+function int roi(){
+  var {
+    int i = 0;
+  }
+  return i;
 }
 
-var
-{
-   int a;
-   int b;
-}
 
 procedure start ()
 {
+
+  var{
+    int oi[2], k = 20;
+  }
+
+  oi[k] = k;
     
 }

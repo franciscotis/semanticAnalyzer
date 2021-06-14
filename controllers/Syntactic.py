@@ -175,8 +175,6 @@ class Syntactic:
             else:
                 self.token_list.append(self.printError(self.token.current_line, self.firstSet["LOGICALOP"], self.token.getValue()))
     
-                
-    
     def variavel(self):
         if self.token.getType() == "IDE":
             self.identificador()
@@ -268,9 +266,12 @@ class Syntactic:
 
     def vetorE1(self):
         if self.token.getValue() =='[':
+            self.token_value_list = []
             self.getNextToken()
             if self.token.getValue() in self.firstSet["ARITMETICOP"] or self.token.getType() in self.firstSet["ARITMETICOP"]:
                 self.aritimeticOp()
+                self.semantic.analyze(self.symbol_table, ['verifyIfVetorIndexIsInteger'], list(chain([self.current_method], self.token_value_list)), self.functions_table)
+                self.token_value_list = []
                 if self.token.getValue() == ']':
                     self.getNextToken()
                     if self.token.getValue() in self.firstSet["VETORE2"]:
@@ -866,11 +867,21 @@ class Syntactic:
     
     def function(self):
         if self.token.getValue() == 'function':
+            data_type = ''
             self.getNextToken()
             if self.dataType():
+                data_type = self.token.getValue()
                 self.getNextToken()
                 if self.token.getType() == 'IDE':
                     symbol = Symbol(self.token.getValue(),'function','IDE')
+                    if data_type == 'int':
+                        symbol.setAssignmentType('INT')
+                    elif data_type == 'real':
+                        symbol.setAssignmentType('REAL')
+                    elif data_type == 'boolean':
+                        symbol.setAssignmentType('BOOLEAN')
+                    elif data_type == 'string':
+                        symbol.setAssignmentType('STRING')
                     self.functions_table[self.token.getValue()] = symbol 
                     self.symbol_table["local"][self.token.getValue()] = []
                     self.current_method = self.token.getValue()
@@ -1732,7 +1743,7 @@ class Syntactic:
             self.declared_function = self.token
             self.identificador()
             if self.token.getValue() == '(':
-                self.semantic.analyze(self.symbol_table, ['methodDeclaredFirst'],[self.declared_function])
+                self.semantic.analyze(self.symbol_table, ['methodDeclaredFirst'],[self.declared_function], self.functions_table)
                 self.token_value_list = []
                 self.functionCall()
                 self.semantic.analyze(self.symbol_table, ['functionCallParameters'],list(chain([self.current_method, self.declared_function], self.token_value_list)), self.functions_table)

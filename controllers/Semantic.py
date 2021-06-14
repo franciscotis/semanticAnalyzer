@@ -30,6 +30,8 @@ class Semantic:
                 self.verifyIfArithmeticExpressionIsCorrect(tokens_list)
             elif rule == 'notAllowAssignNotInitializedVariable':
                 self.notAllowAssignNotInitializedVariable(tokens_list)
+            elif rule == 'verifyIfVetorIndexIsInteger':
+                self.verifyIfVetorIndexIsInteger(tokens_list)
 
 
     def printSemanticError(self, lineNumber, errorType, got):
@@ -89,14 +91,46 @@ class Semantic:
     # ======================================================= Rules =======================================================  #
     # TODO: 1 - Index de vetor/matriz tem que ser um número inteiro
     def verifyIfVetorIndexIsInteger(self, tokens):
-        pass
+        #Número - ok 
+        #Expressão
+        #Retorno de função
+        #identificador
+
+        tokens2 = tokens.copy()
+        current_context = tokens2[0]
+        tokens2 = tokens2[1:]
+        values = list(map(self.getTokenValue,tokens2))
+        while self.hasNextToken(tokens2):
+            token = self.nextToken(tokens2)
+            if token.getType() == "NRO":
+                if '.' in token.getValue():
+                    print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
+                    return
+            if token.getType() == 'ART':
+                if token.getValue() == '/':
+                    print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
+                    return
+            if token.getType() == 'IDE':
+                symbol = self.getSymbol('global', token.getValue())
+                if not symbol:
+                    symbol = self.getSymbol('local', token.getValue(), current_context)
+                    if not symbol:
+                        symbol = self.functions_table[token.getValue()]
+                if symbol is not None:
+                    if symbol.getAssignmentType() !='INT':
+                        print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                        return
+        self.current_token_value = 0
+        
 
     # 2 - Variável ou constante tem que ser inicializada antes de a utilizar.
     #TODO VERIFICAR ESCOPO GLOBAL
     def verifyIfIdentifierExists(self, tokens):
         identifier = tokens[0]
         encontrado = False
-        if identifier.getValue() not in self.symbol_table['local']:
+        if identifier.getValue() in self.functions_table:
+            encontrado = True
+        elif identifier.getValue() not in self.symbol_table['local']:
             for global_symbol in self.symbol_table['global']:
                 if identifier.getValue() == global_symbol.getIdentifier():
                     encontrado = True
@@ -117,7 +151,8 @@ class Semantic:
     # 3 - Uma function ou procedure tem que ser declarada antes de a utilizar.
     def methodDeclaredFirst(self, tokens):
         values = list(map(self.getTokenValue,tokens))
-        if values[0] not in self.symbol_table["local"]:
+        print(values)
+        if values[0] not in self.functions_table:
             print(self.printSemanticError(tokens[0].current_line, "A function/procedure should be declared before call",tokens[0].getValue()+"()"))
 
     # 4 - Uma struct tem que herdar de outra struct existente.
@@ -178,7 +213,9 @@ class Semantic:
                 if not symbol:
                     symbol = self.getSymbol('global', token.getValue())
                     if not symbol:
-                        print(self.printSemanticError(token.current_line, "An identifier must be initialized before use ",token.getValue()))
+                        symbol = self.functions_table[token.getValue()]
+                        if not symbol:
+                            print(self.printSemanticError(token.current_line, "An identifier must be initialized before use ",token.getValue()))
                 if has_arithmetic:
                     if  previous_symbol != '' and symbol is not None and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
                         print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
