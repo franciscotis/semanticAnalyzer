@@ -102,7 +102,7 @@ CAD  - Cadeia de Caracteres
 ```
 
 [ ] Operações com valores de tipos diferentes não podem ser realizadas, pois a linguagem não permite a conversão de tipos.
-[ ] Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro).
+[ ] Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro). => FAZER CHECAGEM COM TYPEDEF
 [ ] Verificar se quando chama uma função na operação, esta não é um procedimento.
 [x] Não é possível realizar a comparação de valores de tipos diferentes.
 [x] Não é possível fazer incremento em string e em booleano
