@@ -1,4 +1,6 @@
 from itertools import chain
+from string import digits
+
 class Semantic:
     def __init__(self):
         self.symbol_table = []
@@ -42,6 +44,10 @@ class Semantic:
                 self.typedefMustRedefineAllowedTypes(tokens_list)
             elif rule == 'typedefWithSameIdentifierAndDifferentScopes':
                 self.typedefWithSameIdentifierAndDifferentScopes(tokens_list)
+            elif rule == 'methodOverloading':
+                self.methodOverloading(tokens_list)
+            elif rule == 'startOverloading':
+                self.startOverloading(tokens_list)
 
 
     def printSemanticError(self, lineNumber, errorType, got):
@@ -110,6 +116,12 @@ class Semantic:
         
     def getTypedefValues(self):
         return self.typedef_list.values()
+
+    def getFunctionParamsOrder(self, params):
+        param_list = []
+        for param in params:
+            param_list.append(param.getTokenType())
+        return param_list
 
 
     # ======================================================= Rules =======================================================  #
@@ -465,3 +477,17 @@ class Semantic:
                 if (typedef_new_type.getValue() in list(self.getTypedefValues())):
                     print(self.printSemanticError(typedef_type.current_line, "You can't redefine a type with the same identifier within different scopes",typedef_type.getValue()))
 
+    def methodOverloading(self, tokens):
+        method_name, method_token, parameters = tokens[0], tokens[1], tokens[2]
+        for fkey in self.functions_table:
+            if ((fkey in method_name) or (fkey.translate(str.maketrans('','',digits))) == method_name.translate(str.maketrans('','',digits))) and fkey!= method_name:
+                existing_method = self.functions_table[fkey]
+                if existing_method :
+                    if len(parameters) == len(existing_method.getParameters()):
+                        if parameters == self.getFunctionParamsOrder(existing_method.getParameters()):
+                            print(self.printSemanticError(method_token.current_line, "This is not a valid method override",method_token.getValue()))
+                    
+    def startOverloading(self, tokens):
+        token = tokens[0]
+        if 'start' in self.symbol_table['local']:
+            print(self.printSemanticError(token.current_line, "You cannot override the start procedure ",token.getValue()))

@@ -21,6 +21,9 @@ class Syntactic:
         self.current_context = ''
         self.current_var_value = ''
         self.current_method = ''
+        self.current_method_token = ''
+        self.current_function_return =  ''
+        self.current_function_parameters = ''
         self.token_value_list = []
         self.typedef_list = {}
         self.semantic = semantic
@@ -878,6 +881,7 @@ class Syntactic:
             self.getNextToken()
             if self.dataType():
                 data_type = self.token.getValue()
+                self.current_function_return = data_type
                 self.getNextToken()
                 if self.token.getType() == 'IDE':
                     symbol = Symbol(self.token.getValue(),'function','IDE')
@@ -889,9 +893,21 @@ class Syntactic:
                         symbol.setAssignmentType('BOOLEAN')
                     elif data_type == 'string':
                         symbol.setAssignmentType('STRING')
-                    self.functions_table[self.token.getValue()] = symbol 
-                    self.symbol_table["local"][self.token.getValue()] = []
-                    self.current_method = self.token.getValue()
+                    if self.token.getValue() in self.functions_table and self.token.getValue() in self.symbol_table['local']:
+                        qtd = 0
+                        for key in self.functions_table:
+                            if self.token.getValue() in key:
+                                qtd+=1
+                        dictionary_name = self.token.getValue() + "OVERRIDE"+ str(qtd)
+                        self.functions_table[dictionary_name] = symbol 
+                        self.symbol_table["local"][dictionary_name] = []
+                        self.current_method = dictionary_name
+                        self.current_method_token = self.token      
+                    else:
+                        self.functions_table[self.token.getValue()] = symbol 
+                        self.symbol_table["local"][self.token.getValue()] = []
+                        self.current_method = self.token.getValue()
+                        self.current_method_token = self.token
                     self.getNextToken()
                     if self.token.getValue() =='(':
                         self.getNextToken()
@@ -915,13 +931,20 @@ class Syntactic:
 
     def continueFunction(self):
         if self.token.getValue() in self.firstSet["PARAMETERS"] or self.token.getType() in self.firstSet["PARAMETERS"]:
+            self.current_function_parameters = []
             self.parameters()
+            self.semantic.analyze(self.symbol_table, ['methodOverloading'], list(chain([self.current_method], [self.current_method_token], [self.current_function_parameters], self.token_value_list)), self.functions_table)
+            self.token_value_list = []
+            self.current_function_parameters = []
             if self.token.getValue() in self.firstSet["BlockFunction"]:
                 self.blockFunction()
             else:
                 self.token_list.append(self.printError(self.token.current_line, self.firstSet["BlockFunction"], self.token.getValue()))
                 self.getError(self.followSet["FUNCTION"])
         elif self.token.getValue() == ")":
+            self.semantic.analyze(self.symbol_table, ['methodOverloading'], list(chain([self.current_method], [self.current_method_token], [self.current_function_parameters], self.token_value_list)), self.functions_table)
+            self.token_value_list = []
+            self.current_function_parameters = []
             self.getNextToken()
             if self.token.getValue() in self.firstSet["BlockFunction"]:
                 self.blockFunction()
@@ -935,6 +958,7 @@ class Syntactic:
     def parameters(self):
         if self.dataType():
             self.current_variable_type = self.token.getValue()
+            self.current_function_parameters.append(self.current_variable_type)
             self.getNextToken()
             if self.token.getType() == "IDE":
                 symbol = Symbol(self.token.getValue(), 'var', self.current_variable_type)
@@ -1560,9 +1584,21 @@ class Syntactic:
     def procedure(self):
         if self.token.getType() == "IDE":
             symbol = Symbol(self.token.getValue(),'function','IDE')
-            self.functions_table[self.token.getValue()] = symbol
-            self.symbol_table["local"][self.token.getValue()] = []
-            self.current_method = self.token.getValue() 
+            if self.token.getValue() in self.functions_table and self.token.getValue() in self.symbol_table['local']:
+                qtd = 0
+                for key in self.functions_table:
+                    if self.token.getValue() in key:
+                        qtd+=1
+                dictionary_name = self.token.getValue() + "OVERRIDE"+ str(qtd)
+                self.functions_table[dictionary_name] = symbol 
+                self.symbol_table["local"][dictionary_name] = []
+                self.current_method = dictionary_name
+                self.current_method_token = self.token      
+            else:
+                self.functions_table[self.token.getValue()] = symbol 
+                self.symbol_table["local"][self.token.getValue()] = []
+                self.current_method = self.token.getValue()
+                self.current_method_token = self.token
             self.identificador()
             if self.token.getValue() =="(":
                 self.getNextToken()
@@ -1585,10 +1621,23 @@ class Syntactic:
                 self.token_list.append(self.printError(self.token.current_line,["("], self.token.getValue()))
                 self.getError(self.followSet["PROCEDURE"])
         elif self.token.getValue() =='start':
+            self.semantic.analyze(self.symbol_table, ['startOverloading'], [self.token], self.functions_table)
             symbol = Symbol(self.token.getValue(),'function','IDE')
-            self.functions_table[self.token.getValue()] = symbol
-            self.symbol_table["local"][self.token.getValue()] = []
-            self.current_method = self.token.getValue()
+            if self.token.getValue() in self.functions_table and self.token.getValue() in self.symbol_table['local']:
+                qtd = 0
+                for key in self.functions_table:
+                    if self.token.getValue() in key:
+                        qtd+=1
+                dictionary_name = self.token.getValue() + "OVERRIDE"+ str(qtd)
+                self.functions_table[dictionary_name] = symbol 
+                self.symbol_table["local"][dictionary_name] = []
+                self.current_method = dictionary_name
+                self.current_method_token = self.token      
+            else:
+                self.functions_table[self.token.getValue()] = symbol 
+                self.symbol_table["local"][self.token.getValue()] = []
+                self.current_method = self.token.getValue()
+                self.current_method_token = self.token
             self.getNextToken()
             if self.token.getValue() == '(':
                 self.getNextToken()
@@ -1616,8 +1665,16 @@ class Syntactic:
     
     def procParam(self):
         if self.token.getValue() in self.firstSet["PARAMETERS"] or self.token.getType() in self.firstSet["PARAMETERS"]:
+            self.current_function_parameters = []
             self.parameters()
+            self.semantic.analyze(self.symbol_table, ['methodOverloading'], list(chain([self.current_method], [self.current_method_token], [self.current_function_parameters], self.token_value_list)), self.functions_table)
+            self.token_value_list = []
+            self.current_function_parameters = []
+
         elif self.token.getValue() == ')':
+            self.semantic.analyze(self.symbol_table, ['methodOverloading'], list(chain([self.current_method], [self.current_method_token], [self.current_function_parameters], self.token_value_list)), self.functions_table)
+            self.token_value_list = []
+            self.current_function_parameters = []
             self.getNextToken()
         else:
             self.token_list.append(self.printError(self.token.current_line, self.firstSet["PROCPARAM"], self.token.getValue()))   

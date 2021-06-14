@@ -81,11 +81,11 @@ CAD  - Cadeia de Caracteres
 ```
 
 [x] Função ou procedure tem que ser declarada antes de a utilizar.
-[x] A função tem que ser chamada com a quantidade de parâmetros e tipos corretos.
+[] A função tem que ser chamada com a quantidade de parâmetros e tipos corretos.  #REVISAR
 [ ] O retorno da função tem que ser igual ao valor retornado
-[ ] Não é possível fazer overloading do procedure start
-[ ] Para ter a sobrecarga de métodos em geral, é avaliado a quantidade e tipo de parâmetros além do tipo de retorno
-[ ] É possível ter uma função com o mesmo nome de um procedimento.
+[x] Não é possível fazer overloading do procedure start
+[x] Para ter a sobrecarga de métodos em geral, é avaliado a quantidade e tipo de parâmetros além do tipo de retorno 
+[x] É possível ter uma função com o mesmo nome de um procedimento.
 
 ```
 

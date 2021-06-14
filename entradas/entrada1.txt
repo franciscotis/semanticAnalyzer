@@ -10,8 +10,6 @@ struct Pessoa{
   }
 }
 
-typedef real pess;
-
 function int roi(){
   var {
     int i = 0;
@@ -19,14 +17,41 @@ function int roi(){
   return i;
 }
 
+function int roi(int o){
+  print("hello world");
+  return 0;
+}
+
+function int roi(real k){
+  print("hello world");
+  return 0;
+}
+
+procedure teste(){
+  print("eae");
+}
+
+procedure teste(int k){
+  print("eae");
+}
+
+procedure teste(int k, real k){
+  print("eae");
+}
+
+function int teste(string a){
+  print("shalom")
+  return 0;
+}
 
 procedure start ()
 {
-  typedef real pess;
+  
   var{
     int oi[2], k = 20;
-    real abc;
+    pess abc;
   }
+
 
   typedef Pessoa oi;
   
