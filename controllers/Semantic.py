@@ -384,13 +384,15 @@ class Semantic:
     def notAllowAssignNotInitializedVariable(self, tokens):
         tokens2 = tokens.copy()
         function_name = tokens2.pop(0)
-        identifier1, identifier2 = tokens2[0], tokens2[1]
+        identifier1, identifier2 = tokens2[0], tokens2[2]        
+        symbol1 = self.getSymbol('local', identifier1.getValue(), function_name)
+        symbol2 = self.getSymbol('local', identifier2.getValue(), function_name)
         
-        symbol = self.getSymbol('local', identifier2.getValue(), function_name)
-        if(not symbol): return
-        if(symbol.getValue()==''):
+        if(not symbol1 or not symbol2): return
+        if(symbol2.getValue()==''):
             print(self.printSemanticError(identifier1.current_line, "An identifier must be initialized before assign to a variable", identifier2.getValue()))
-
+        elif(symbol1.getAssignmentType()!=symbol2.getAssignmentType()):
+            print(self.printSemanticError(identifier1.current_line, "Variables must be the same type", identifier2.getValue()))
     
     def notAllowBooleanAndStringIncrements(self, tokens):
         function_name = tokens.pop(0)
