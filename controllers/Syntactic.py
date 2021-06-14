@@ -22,6 +22,7 @@ class Syntactic:
         self.current_var_value = ''
         self.current_method = ''
         self.token_value_list = []
+        self.typedef_list = {}
         self.semantic = semantic
 
     def run(self):
@@ -1517,9 +1518,15 @@ class Syntactic:
 
     def contTypedefDeclaration(self):
         if self.dataType():
+            typedef_type = self.token
+            self.semantic.analyze(self.symbol_table, ['typedefMustRedefineAllowedTypes'],[self.token, self.inside_method], self.functions_table, self.typedef_list)
             self.getNextToken()
             if self.token.getType()=="IDE":
+                typedef_new_type = self.token
+                self.semantic.analyze(self.symbol_table, ['typedefWithSameIdentifierAndDifferentScopes'],[typedef_type, typedef_new_type, self.inside_method], self.functions_table, self.typedef_list)
                 self.getNextToken()
+                self.typedef_list[typedef_type.getValue()] = typedef_new_type.getValue()
+                
                 if self.token.getValue() == ';':
                     self.getNextToken()
                 else:

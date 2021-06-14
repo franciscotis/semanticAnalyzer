@@ -1,14 +1,18 @@
+from itertools import chain
 class Semantic:
     def __init__(self):
         self.symbol_table = []
         self.functions_table = {}
         self.current_token_value = 0
+        self.typedef_list = {}
 
 
-    def analyze(self, symbol_table, rules, tokens_list, functions_table= None):
+    def analyze(self, symbol_table, rules, tokens_list, functions_table= None, typedef_list=None):
         self.symbol_table = symbol_table
         if functions_table is not None:
             self.functions_table = functions_table
+        if typedef_list is not None:
+            self.typedef_list = typedef_list
         for rule in rules:
             if rule == 'structExtends':
                 self.structExtends(tokens_list)
@@ -34,6 +38,10 @@ class Semantic:
                 self.verifyIfVetorIndexIsInteger(tokens_list)
             elif rule == 'verifyIfGlobalVariableAlreadyExists':
                 self.verifyIfGlobalVariableAlreadyExists(tokens_list)
+            elif rule == 'typedefMustRedefineAllowedTypes':
+                self.typedefMustRedefineAllowedTypes(tokens_list)
+            elif rule == 'typedefWithSameIdentifierAndDifferentScopes':
+                self.typedefWithSameIdentifierAndDifferentScopes(tokens_list)
 
 
     def printSemanticError(self, lineNumber, errorType, got):
@@ -70,6 +78,10 @@ class Semantic:
             for variable in function_variables:
                 if variable.getIdentifier() == name:
                     return variable
+        if scope == 'global':
+            for variable in self.symbol_table['global']:
+                if variable.getIdentifier() == name:
+                    return variable
         return None
 
 
@@ -88,7 +100,17 @@ class Semantic:
     def getExpression(self, tokens):
         expressao = ''.join(tokens)
         return expressao
+
+    def getDeclaredStructNames(self):
+        names = []
+        for local in self.symbol_table['local']:
+            if local not in self.functions_table:
+                names.append(local)
+        return names
         
+    def getTypedefValues(self):
+        return self.typedef_list.values()
+
 
     # ======================================================= Rules =======================================================  #
     # TODO: 1 - Index de vetor/matriz tem que ser um número inteiro
@@ -428,3 +450,18 @@ class Semantic:
         if encontrado:
             print(self.printSemanticError(identifier.current_line, f'{ "Local" if inside_method or inside_struct else "Global"} Variable already declared ',identifier.getValue()))
         
+
+    def typedefMustRedefineAllowedTypes(self, tokens):
+        typedef_type, inside_method = tokens[0], tokens[1]
+        struct_names = self.getDeclaredStructNames()
+        if typedef_type.getValue() not in list(chain(['int', 'real', 'boolean', 'string'], struct_names)):
+             print(self.printSemanticError(typedef_type.current_line, "A typedef must redefine allowed types",typedef_type.getValue()))
+
+    def typedefWithSameIdentifierAndDifferentScopes(self, tokens):
+        typedef_type, typedef_new_type, inside_method = tokens[0], tokens[1], tokens[2]
+        struct_names = self.getDeclaredStructNames()
+        if inside_method:
+            if typedef_type.getValue() in list(chain(['int', 'real', 'boolean', 'string'], struct_names)):
+                if (typedef_new_type.getValue() in list(self.getTypedefValues())):
+                    print(self.printSemanticError(typedef_type.current_line, "You can't redefine a type with the same identifier within different scopes",typedef_type.getValue()))
+

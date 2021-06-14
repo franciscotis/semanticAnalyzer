@@ -71,8 +71,8 @@ CAD  - Cadeia de Caracteres
 
 ```
 
-[ ] Typedef tem que redefinir tipos permitidos
-[ ] Não é permitido fazer typedefs com o mesmo identificador em escopos diferentes
+[x] Typedef tem que redefinir tipos permitidos
+[x] Não é permitido fazer typedefs com o mesmo identificador em escopos diferentes
 
 ```
 

@@ -1,10 +1,16 @@
 var{
   int oioi,abc;
+  real teste[12];
 }
 
-const{
-  real oioi;
+
+struct Pessoa{
+  var{
+    string nome;
+  }
 }
+
+typedef real pess;
 
 function int roi(){
   var {
@@ -16,11 +22,13 @@ function int roi(){
 
 procedure start ()
 {
-
+  typedef real pess;
   var{
     int oi[2], k = 20;
     real abc;
   }
+
+  typedef Pessoa oi;
   
 
   oi[k] = k;
