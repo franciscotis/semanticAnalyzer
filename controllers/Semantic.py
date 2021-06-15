@@ -338,31 +338,68 @@ class Semantic:
                 
     # TODO: 7 - Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro). 
     def verifyIfArithmeticExpressionIsCorrect(self, tokens):
-        current_context = tokens[0]
-        tokens = tokens[1:]
+        local_var = tokens[0]
+        global_var = tokens[1]
+        first_local = False
+        first = False
+        local_global = False
+        current_context = tokens[2]
+        tokens = tokens[3:]
         values = list(map(self.getTokenValue,tokens))
         previous_symbol = ''
         has_arithmetic = False
+        is_local = False
+        is_global = False
         while self.hasNextToken(tokens):
             token = self.nextToken(tokens)
-            if token.getType() == 'IDE':
-                symbol = self.getSymbol('local', token.getValue(), current_context)
-                if not symbol:
-                    symbol = self.getSymbol('global', token.getValue())
-                    if not symbol:
-                        if token.getValue() in self.functions_table:
-                            symbol = self.functions_table[token.getValue()]
-                        if not symbol:
-                            print(self.printSemanticError(token.current_line, "An identifier must be initialized before use ",token.getValue()))
-                if has_arithmetic:
-                    if  previous_symbol != '' and symbol is not None and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
-                        print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
-                    has_arithmetic = False
-                if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
-                    previous_symbol = symbol
-            elif token.getType() == 'ART':
-                if self.isArithmetic(token.getValue()):
-                    has_arithmetic = True
+            if token.getValue() == '.' and not first_local:
+                first_local = True
+                local_global = True
+            else:
+                if local_global:
+                    local_global = False
+                else:
+                    if token.getType() == 'PRE':
+                        if token.getValue() == 'local':
+                            is_local = True
+                        elif token.getValue() == 'global':
+                            is_global = True
+                    if token.getType() == 'IDE':
+                        if first:
+                            first = False
+                            is_local = local_var
+                            is_global = global_var
+                        if is_local or is_global:
+                            if is_local or is_global:
+                                if is_local:
+                                    symbol = self.getSymbol('local', token.getValue(), current_context)
+                                    if not symbol:
+                                        print(self.printSemanticError(token.current_line, "Local identifier not found  ",token.getValue()))
+                                elif is_global:
+                                    symbol = self.getSymbol('global', token.getValue())
+                                    if not symbol:
+                                        print(self.printSemanticError(token.current_line, "Global identifier not found  ",token.getValue()))
+                                if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
+                                    previous_symbol = symbol
+                            else:
+                                symbol = self.getSymbol('local', token.getValue(), current_context)
+                                if not symbol:
+                                    symbol = self.getSymbol('global', token.getValue())
+                                    if not symbol:
+                                        if token.getValue() in self.functions_table:
+                                            symbol = self.functions_table[token.getValue()]
+                                        if not symbol:
+                                            print(self.printSemanticError(token.current_line, "An identifier must be initialized before use ",token.getValue()))
+                                        if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
+                                            previous_symbol = symbol
+                            if has_arithmetic:
+                                if  previous_symbol != '' and symbol is not None and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
+                                    print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
+                                has_arithmetic = False
+                                
+                    elif token.getType() == 'ART':
+                        if self.isArithmetic(token.getValue()):
+                            has_arithmetic = True
                 
         self.current_token_value = 0
 
@@ -429,9 +466,29 @@ class Semantic:
         tokens2 = tokens.copy()
         current_context = tokens2.pop(0)
         values = list(map(self.getTokenValue,tokens2))
+        print(values)
+        is_local_global = False
+        is_local = False
+        is_global = False
+        if tokens2[0].getValue() == 'local' or 'global':
+            is_local_global = True
+            globloc = tokens2.pop(0)
+            values.pop(0)
+            tokens2.pop(0)
+            values.pop(0)
+            if globloc.getValue() == 'local':
+                is_local = True
+            else:
+                is_global = True
         variable_name = values.pop(0)
         variable_token = tokens2.pop(0)
-        variable_symbol = self.getSymbol('local',variable_name,current_context)
+        if is_local_global:
+            if is_local:
+                variable_symbol = self.getSymbol('local',variable_name,current_context)
+            else:
+                variable_symbol = self.getSymbol('global',variable_name)
+        else:
+            variable_symbol = self.getSymbol('local',variable_name,current_context)
         if variable_symbol!= None:
             if variable_symbol.isAConstSymbol():
                 print(self.printSemanticError(variable_token.current_line, "You cannot assign values to const variables after its declaration ",variable_token.getValue()))
@@ -522,17 +579,58 @@ class Semantic:
 
     def notAllowAssignNotInitializedVariable(self, tokens):
         tokens2 = tokens.copy()
-        
+        is_local = False
+        is_global = False
+        has_local_global = False
         function_name = tokens2.pop(0)
-        identifier1, identifier2 = tokens2[0], tokens2[2]        
-        symbol1 = self.getSymbol('local', identifier1.getValue(), function_name)
-        symbol2 = self.getSymbol('local', identifier2.getValue(), function_name)
         values = list(map(self.getTokenValue, tokens2))
-        if(not symbol1 or not symbol2): return
-        if(symbol2.getValue()==''):
-            print(self.printSemanticError(identifier1.current_line, "An identifier must be initialized before assign to a variable", identifier2.getValue()))
-        elif(symbol1.getTokenType()!=symbol2.getTokenType()  or (symbol1.getIsArray() != symbol2.getIsArray() and ('[' not in values))  ):
-            print(self.printSemanticError(identifier1.current_line, "Variables must be the same type", identifier2.getValue()))
+        token_left = True
+        first_token = ''
+
+        while self.hasNextToken(tokens2):
+            token = self.nextToken(tokens2)
+
+            if token.getType() == 'PRE':
+                if token.getValue() == 'local' or 'global':
+                    is_local = True if token.getValue() == 'local' else False
+                    is_global = True if token.getValue() == 'global' else False
+                    has_local_global = True
+        
+            if token.getType() == 'IDE':
+                if token_left:
+                    token_left = False
+                    symblocal = self.getSymbol('local', token.getValue(), function_name)
+                    symbglobal = self.getSymbol('global', token.getValue())
+                    if has_local_global:
+                        has_local_global = False
+                        if is_local:
+                            symbol1 = symblocal
+                        else:
+                            symbol1 = symbglobal
+                    else:
+                        symbol1 = symblocal if symbglobal is not None else symbglobal
+                    first_token = symbol1
+                    
+                else:
+                    symblocal = self.getSymbol('local', token.getValue(), function_name)
+                    symbglobal = self.getSymbol('global', token.getValue())
+                    if has_local_global:
+                        has_local_global = False
+                        if is_local:
+                            symbol1 = symblocal
+                        else:
+                            symbol1 = symbglobal
+                    else:
+                        symbol1 = symblocal if symblocal is not None else symbglobal
+                
+                if symbol1 is None:
+                    print(self.printSemanticError(token.current_line, "An identifier must be initialized before assign to a variable", token.getValue()))
+                    return
+                if symbol1.getValue() == '':
+                    print(self.printSemanticError(token.current_line, "An identifier must be initialized before assign to a variable", token.getValue()))
+                elif(symbol1.getTokenType()!= first_token.getTokenType() or (symbol1.getIsArray() != first_token.getIsArray() and ('[' not in values))):
+                    print(self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
+            
     
     def notAllowBooleanAndStringIncrements(self, tokens):
         tokens2 = tokens.copy()

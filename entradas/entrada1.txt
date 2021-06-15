@@ -23,13 +23,18 @@ procedure start ()
 {
   
   var{
-    int oi[2], k = 20, ser = 30;
+    int oi[2], k = 20, abcd;
     real ooo = 20.1;
     string abc = "ab";
   }
 
+  const{
+    int a = 10;
+  }
 
-  local.oi[local.twitch] = 20;
+
+a = 20;
+
   
   
 

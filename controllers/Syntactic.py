@@ -14,6 +14,7 @@ class Syntactic:
         self.inside_struct = False
         self.inside_code = False
         self.array_index = False
+        self.arit = False
         self.is_const = False
         self.current_symbol = ''
         self.current_struct = ''
@@ -200,7 +201,7 @@ class Syntactic:
         if self.token.getType()=="IDE":
             if self.inside_code:
                 self.semantic.analyze(self.symbol_table, ['verifyIfIdentifierExists'],[self.is_local, self.is_global, self.current_method,self.token], self.functions_table)
-                if not self.array_index:
+                if not self.array_index and not self.arit:
                     self.is_global = False
                     self.is_local = False
             self.getNextToken()
@@ -1784,15 +1785,27 @@ class Syntactic:
     def comando(self):
         if self.token.getValue() in self.firstSet["PRINT"]:
             self.token_value_list = []
+            self.arit = True
             self.printFunction()
-            self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.current_method], self.token_value_list)) )
+            self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.is_local, self.is_global, self.current_method], self.token_value_list)) )
+            self.is_global = False
+            self.arit = False
+            self.is_local = False
             self.token_value_list = []
         elif self.token.getType() in self.firstSet["FUNCTIONCALL"] and self.token.getType() in self.firstSet["ATRIBUICAO"]:
             self.preFuncionAtribuicao()
         elif self.token.getValue() in self.firstSet["ATRIBUICAO"]:
+            tkn = self.token
             self.token_value_list = []
+            self.token_value_list.append(tkn)
+            self.arit = True
             self.atribuicao()
-            self.semantic.analyze(self.symbol_table, ['notAllowAssignNotInitializedVariable','verifyIfArithmeticExpressionIsCorrect'],list(chain([self.current_method], self.token_value_list)) )
+            self.semantic.analyze(self.symbol_table, ['notAllowAConstraintToReceiveValue'],list(chain([self.current_method], self.token_value_list)) )
+            self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.is_local, self.is_global, self.current_method], self.token_value_list)) )
+            self.is_global = False
+            self.arit = False
+            self.is_local = False
+            self.semantic.analyze(self.symbol_table, ['notAllowAssignNotInitializedVariable'],list(chain([self.current_method], self.token_value_list)) )
             self.token_value_list = []
         elif self.token.getValue() in self.firstSet["READ"]:
             self.read()
@@ -1811,7 +1824,7 @@ class Syntactic:
         elif self.token.getValue() in self.firstSet["WHILE"]:
             self.token_value_list = []
             self.whileFunction()
-            self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.current_method], self.token_value_list)) )
+            self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.is_local, self.is_global, self.current_method], self.token_value_list)) )
             self.token_value_list = []
         elif self.token.getValue() in self.firstSet["CONDITIONAL"]:
             self.conditional()
@@ -1835,7 +1848,8 @@ class Syntactic:
                 self.functionCall()
             elif self.token.getValue() == '=':
                 self.atribuicao(False)
-                self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect','notAllowAConstraintToReceiveValue', 'notAllowAssignNotInitializedVariable'],list(chain([self.current_method, self.declared_function], self.token_value_list)))
+                self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.is_local, self.is_global, self.current_method], self.token_value_list)) )
+                self.semantic.analyze(self.symbol_table, ['notAllowAConstraintToReceiveValue', 'notAllowAssignNotInitializedVariable'],list(chain([self.current_method, self.declared_function], self.token_value_list)))
                 self.token_value_list = []
             elif self.token.getValue() == '++':
                 self.incrementOp(False)
@@ -2002,7 +2016,8 @@ class Syntactic:
                 self.getNextToken()
                 if self.token.getValue() in self.firstSet["BOOLOPERATIONS"] or self.token.getType() in self.firstSet["BOOLOPERATIONS"]:
                     self.boolOperations()
-                    self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect','checkTypeComparation','checkBooleanCondition'],list(chain([self.current_method], self.token_value_list)) )
+                    self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.is_local, self.is_global, self.current_method], self.token_value_list)) )
+                    self.semantic.analyze(self.symbol_table, ['checkTypeComparation','checkBooleanCondition'],list(chain([self.current_method], self.token_value_list)) )
                     self.token_value_list = []
                     if self.token.getValue() == ')':
                         self.getNextToken()
