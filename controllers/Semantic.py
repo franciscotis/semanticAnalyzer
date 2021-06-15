@@ -52,6 +52,8 @@ class Semantic:
                 self.verifyIfCallingAProcedureInsteadOfAFunction(tokens_list)
             elif rule == 'verifyIfFunctionReturnIsEquivalent':
                 self.verifyIfFunctionReturnIsEquivalent(tokens_list)
+            elif rule == 'verifyFuncionReturnType':
+                self.verifyFuncionReturnType(tokens_list)
 
 
     def printSemanticError(self, lineNumber, errorType, got):
@@ -109,6 +111,13 @@ class Semantic:
 
     def isArithmetic(self, token):
         return True if token == '+' or token == '-' or token == '*' or token == '/' else False
+
+    def getDataType(self, token)->str:
+        if(token.getValue()=='true' or token.getValue()=='true'): return 'BOOLEAN'
+        if(token.getType()=='CAD'): return 'STRING'
+        if('.' in token.getValue()): return 'REAL'
+        if(token.getType()=='NRO'): return 'INT'
+        return None
 
     def getExpression(self, tokens):
         expressao = ''.join(tokens)
@@ -726,4 +735,30 @@ class Semantic:
         else:
             print(self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
 
+    
+    def verifyFuncionReturnType(self, tokens):
+        function_name = tokens.pop(0)
+        tokens2 = tokens[0:-1]
+
+        #print(list(map(self.getTokenValue, tokens2)))
+        if(len(tokens2)==0): return
+
+        if(len(tokens2)==1):
+            token = tokens2[0]
+            if(token.getType()=='IDE'):
+                symbol = self.getSymbol('local', token.getValue(), function_name)
+                if(not symbol): return
+                if(self.functions_table.get(function_name).getAssignmentType() == symbol.getAssignmentType()): return
+
+            elif(self.functions_table.get(function_name).getAssignmentType() == self.getDataType(token)): return
+            print(self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()))
+
+        if(tokens2[0].getType()=='IDE'):
+            if(not self.functions_table.get(tokens2[0].getValue())):
+                print(self.printSemanticError(tokens2[0].current_line, "A function should be declared before call", tokens2[0].getValue()+"()"))
+                return
+        
+            function_identifier = self.functions_table.get(tokens2[0].getValue())
+            if(self.functions_table.get(function_name).getAssignmentType() == function_identifier.getAssignmentType()): return
+            print(self.printSemanticError(tokens2[0].current_line, "Function's return must be the same declared type", tokens2[0].getValue()+"()"))
         

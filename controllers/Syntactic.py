@@ -1051,6 +1051,7 @@ class Syntactic:
             self.getError(self.followSet["BlockFuncContent"])
                         
     def funcContent(self):
+        self.token_value_list = []
         if self.token.getValue() in self.firstSet["CODIGO"] or self.token.getType() in self.firstSet["CODIGO"] :
             self.codigo()
             if self.token.getValue() == "return":
@@ -1072,6 +1073,8 @@ class Syntactic:
         else: 
             self.token_list.append(self.printError(self.token.current_line, self.firstSet["FUNCCONTENT"], self.token.getValue()))
             self.getError(self.followSet["FUNCCONTENT"])
+        self.semantic.analyze(self.symbol_table, ['verifyFuncionReturnType'], list(chain([self.current_method], self.token_value_list)))
+        self.token_value_list = []
 
     def content1(self):
         if self.token.getValue() in self.firstSet["CONSTDECLARATION"]:

@@ -81,8 +81,9 @@ CAD  - Cadeia de Caracteres
 ```
 
 [x] Função ou procedure tem que ser declarada antes de a utilizar. #TODO - VERIFICAR SE USA O PARÂMETRO É UM VETOR
+
 [x] A função tem que ser chamada com a quantidade de parâmetros e tipos corretos. #TODO - VERIFICAR SE O DADO NÃO É UM TYPEDEF global e local
-[ ] O retorno da função tem que ser igual ao valor retornado
+[x] O retorno da função tem que ser igual ao valor retornado
 [x] Não é possível fazer overloading do procedure start
 [x] Para ter a sobrecarga de métodos em geral, é avaliado a quantidade e tipo de parâmetros além do tipo de retorno. #TODO - VERIFICAR SE O DADO NÃO É UM TYPEDEF
 [x] É possível ter uma função com o mesmo nome de um procedimento.
