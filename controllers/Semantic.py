@@ -165,45 +165,85 @@ class Semantic:
     # ======================================================= Rules =======================================================  #
     # TODO: 1 - Index de vetor/matriz tem que ser um número inteiro
     def verifyIfVetorIndexIsInteger(self, tokens):
-
         tokens2 = tokens.copy()
+        #print(tokens)
+        is_local = False
+        is_global = False
         current_context = tokens2[0]
         tokens2 = tokens2[1:]
         values = list(map(self.getTokenValue,tokens2))
+        #print(values)
+        local_global = False
+        first_local = False
         while self.hasNextToken(tokens2):
             token = self.nextToken(tokens2)
-            if token.getType() == "NRO":
-                if '.' in token.getValue():
-                    print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
-                    return
-            if token.getType() == "CAD":
-                print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
-                return
-            if token.getType() == 'ART':
-                if token.getValue() == '/':
-                    print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
-                    return
-            if token.getType() == 'IDE':
-                symbol = self.getSymbol('global', token.getValue())
-                if not symbol:
-                    symbol = self.getSymbol('local', token.getValue(), current_context)
-                    if not symbol:
-                        symbol = self.functions_table[token.getValue()]
-                if symbol is not None:
-                    if symbol.getAssignmentType() !='INT':
-                        if symbol.getIsArray():
-                            if symbol.getTokenType() != 'int':
-                                print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
-                        else:
-                            print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+            if token.getValue() == '.' and not first_local:
+                local_global = True
+                first_local = True
+            else:
+                if local_global:
+                    local_global = False
+                else:
+                    if token.getType() == "NRO":
+                        if '.' in token.getValue():
+                            print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
+                            return
+                    if token.getType() == "CAD":
+                        print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
                         return
+                    if token.getType() == 'ART':
+                        if token.getValue() == '/':
+                            print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
+                            return
+                    if token.getType() == 'PRE':
+                        if token.getValue() == 'local':
+                            is_local = True
+                        elif token.getValue() == 'global':
+                            is_global = True
+                    if token.getType() == 'IDE':
+                        if is_local or is_global:
+                            if is_local:
+                                symbol = self.getSymbol('local', token.getValue(), current_context)
+                                if symbol is None:
+                                    print(self.printSemanticError(token.current_line, "Local identifier not found",self.getExpression(values)))
+                                else:
+                                    if symbol.getAssignmentType() !='INT':
+                                        print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                            elif is_global:
+                                symbol = self.getSymbol('global', token.getValue())
+                                if symbol is None:
+                                    print(self.printSemanticError(token.current_line, "Global identifier not found",self.getExpression(values)))
+                                else:
+                                    if symbol.getAssignmentType() !='INT':
+                                        print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))                                    
+                        else:
+                            symbol = self.getSymbol('global', token.getValue())
+                            if not symbol:
+                                symbol = self.getSymbol('local', token.getValue(), current_context)
+                                if not symbol:
+                                    symbol = self.functions_table[token.getValue()]
+                            if symbol is not None:
+                                if symbol.getAssignmentType() !='INT':
+                                    if symbol.getIsArray():
+                                        if symbol.getTokenType() != 'int':
+                                            print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                                    else:
+                                        print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                                    return
+                            
         self.current_token_value = 0
         
 
     # 2 - Variável ou constante tem que ser inicializada antes de a utilizar.
     #TODO VERIFICAR ESCOPO GLOBAL
     def verifyIfIdentifierExists(self, tokens):
-        identifier = tokens[0]
+        tokens2 = tokens.copy()
+        is_local = tokens2[0]
+        found_local = False
+        is_global = tokens2[1]
+        found_global = False
+        current_method = tokens[2]
+        identifier = tokens[3]
         encontrado = False
         if identifier.getValue() in self.functions_table:
             encontrado = True
@@ -211,17 +251,28 @@ class Semantic:
             for global_symbol in self.symbol_table['global']:
                 if identifier.getValue() == global_symbol.getIdentifier():
                     encontrado = True
-            for estrutura_local in self.symbol_table['local']:
-                for simbolo in self.symbol_table['local'][estrutura_local]:
-                    if identifier.getValue() == simbolo.getIdentifier():
+                    if is_global:
+                        found_global = True
+            
+            for simbolo in self.symbol_table['local'][current_method]:
+                if identifier.getValue() == simbolo.getIdentifier():
+                    encontrado = True
+                    if is_local:
+                        found_local = True
+            if current_method in self.functions_table:
+                for parametro in self.functions_table[current_method].getParameters():
+                    if identifier.getValue() == parametro.getIdentifier():
                         encontrado = True
-                if estrutura_local in self.functions_table:
-                    for parametro in self.functions_table[estrutura_local].getParameters():
-                        if identifier.getValue() == parametro.getIdentifier():
-                            encontrado = True
         else:
             encontrado = True
-        if not encontrado:
+
+        if is_local and not found_local:
+            print(self.printSemanticError(identifier.current_line, "Local identifier not found ",identifier.getValue()))
+
+        elif is_global and not found_global:
+            print(self.printSemanticError(identifier.current_line, "Global identifier not found ",identifier.getValue()))
+
+        elif not encontrado:
             print(self.printSemanticError(identifier.current_line, "An identifier must be initialized before use ",identifier.getValue()))
 
 
@@ -299,7 +350,8 @@ class Semantic:
                 if not symbol:
                     symbol = self.getSymbol('global', token.getValue())
                     if not symbol:
-                        symbol = self.functions_table[token.getValue()]
+                        if token.getValue() in self.functions_table:
+                            symbol = self.functions_table[token.getValue()]
                         if not symbol:
                             print(self.printSemanticError(token.current_line, "An identifier must be initialized before use ",token.getValue()))
                 if has_arithmetic:
@@ -387,7 +439,7 @@ class Semantic:
 
     # Um identificador deve ser declarado antes de seu uso
 
-
+    '''
     def verifyIfIdentifierExists(self, tokens):
         identifier = tokens[0]
         encontrado = False
@@ -408,6 +460,7 @@ class Semantic:
             encontrado = True
         if not encontrado:
             print(self.printSemanticError(identifier.current_line, "An identifier must be initialized before use ",identifier.getValue()))
+        '''
 
 
     # 14 - Não é possível realizar a comparação de valores de tipos diferentes.

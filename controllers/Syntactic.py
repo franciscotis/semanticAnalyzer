@@ -13,6 +13,7 @@ class Syntactic:
         self.inside_method = False
         self.inside_struct = False
         self.inside_code = False
+        self.array_index = False
         self.is_const = False
         self.current_symbol = ''
         self.current_struct = ''
@@ -24,6 +25,8 @@ class Syntactic:
         self.current_method_token = ''
         self.current_function_return =  ''
         self.current_function_parameters = ''
+        self.is_global = False
+        self.is_local = False
         self.token_value_list = []
         self.typedef_list = {}
         self.semantic = semantic
@@ -38,6 +41,10 @@ class Syntactic:
             self.token = self.lexical.obterToken()
             self.token_list.append(self.token.toString())
             self.token_value_list.append(self.token)
+            if self.token.getValue() == 'global':
+                self.is_global = True
+            elif self.token.getValue() == 'local':
+                self.is_local = True
         except:
             print("                         End of tokens                         ")
             return
@@ -192,7 +199,10 @@ class Syntactic:
     def identificador(self):
         if self.token.getType()=="IDE":
             if self.inside_code:
-                self.semantic.analyze(self.symbol_table, ['verifyIfIdentifierExists'],[self.token], self.functions_table)
+                self.semantic.analyze(self.symbol_table, ['verifyIfIdentifierExists'],[self.is_local, self.is_global, self.current_method,self.token], self.functions_table)
+                if not self.array_index:
+                    self.is_global = False
+                    self.is_local = False
             self.getNextToken()
             if self.token.getValue() in self.firstSet["CONTIDENTIFICADOR"]:
                 self.contIdentificador()
@@ -274,8 +284,12 @@ class Syntactic:
         if self.token.getValue() =='[':
             self.getNextToken()
             if self.token.getValue() in self.firstSet["ARITMETICOP"] or self.token.getType() in self.firstSet["ARITMETICOP"]:
+                self.array_index = True
                 self.aritimeticOp()
                 self.semantic.analyze(self.symbol_table, ['verifyIfVetorIndexIsInteger'], list(chain([self.current_method], self.token_value_list)), self.functions_table)
+                self.array_index = False
+                self.is_local = False
+                self.is_global = False
                 if self.token.getValue() == ']':
                     self.getNextToken()
                     if self.token.getValue() in self.firstSet["VETORE2"]:

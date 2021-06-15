@@ -54,9 +54,9 @@ CAD  - Cadeia de Caracteres
 
 ```
 
-[x] Variável ou constante tem que ser inicializada antes de a utilizar. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
-[x] Index de vetor/matriz tem que ser um número inteiro. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
-[x] Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
+[x] Variável ou constante tem que ser inicializada antes de a utilizar. (local/global ok)
+[x] Index de vetor/matriz tem que ser um número inteiro. (local/global ok)
+[x] Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL  E TYPEDEF
 [x] Não é possível declarar uma variável global se outra com o mesmo nome já foi declarada anteriormente. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
 [x] Não é possível declarar uma variável local se outra com o mesmo nome já foi declara anteriormente. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
 [x] É possível declarar uma variável local com o mesmo nome de uma variável global. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
