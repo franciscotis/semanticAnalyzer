@@ -48,6 +48,10 @@ class Semantic:
                 self.methodOverloading(tokens_list)
             elif rule == 'startOverloading':
                 self.startOverloading(tokens_list)
+            elif rule == 'verifyIfCallingAProcedureInsteadOfAFunction':
+                self.verifyIfCallingAProcedureInsteadOfAFunction(tokens_list)
+            elif rule == 'verifyIfFunctionReturnIsEquivalent':
+                self.verifyIfFunctionReturnIsEquivalent(tokens_list)
 
 
     def printSemanticError(self, lineNumber, errorType, got):
@@ -56,6 +60,9 @@ class Semantic:
 
     def getTokenValue(self, token):
         return token.getValue()   
+
+    def getSymbolValue(self, symbol):
+        return symbol.getTokenType()
 
     def nextToken(self,tokens):
         tkn = tokens[self.current_token_value]
@@ -123,14 +130,41 @@ class Semantic:
             param_list.append(param.getTokenType())
         return param_list
 
+    def getAllFunctionsWithSimilarName(self, name):
+        functions = []
+        for func in self.functions_table:
+            if name in func:
+                functions.append(func)
+        return functions
+
+    def getQuantityOfParametersAndTypes(self, tokens, current_context):
+        quantity = 0
+        types  = []
+        for token in tokens:
+            if token.getType() == 'IDE' or token.getType() == 'NRO':
+                quantity+=1
+                value_symbol = self.getSymbol('local', token.getValue(),current_context)
+                if token.getValue() == ';':
+                    break
+                if value_symbol is not None:
+                    types.append(value_symbol.getTokenType())
+                else:
+                    if token.getType() == 'NRO':
+                        if '.' in token.getValue():
+                            types.append('real')
+                        else:
+                            types.append('int')
+        return quantity, types
+
+
+    
+                
+
+
 
     # ======================================================= Rules =======================================================  #
     # TODO: 1 - Index de vetor/matriz tem que ser um número inteiro
     def verifyIfVetorIndexIsInteger(self, tokens):
-        #Número - ok 
-        #Expressão
-        #Retorno de função
-        #identificador
 
         tokens2 = tokens.copy()
         current_context = tokens2[0]
@@ -142,6 +176,9 @@ class Semantic:
                 if '.' in token.getValue():
                     print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
                     return
+            if token.getType() == "CAD":
+                print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
+                return
             if token.getType() == 'ART':
                 if token.getValue() == '/':
                     print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
@@ -154,7 +191,11 @@ class Semantic:
                         symbol = self.functions_table[token.getValue()]
                 if symbol is not None:
                     if symbol.getAssignmentType() !='INT':
-                        print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                        if symbol.getIsArray():
+                            if symbol.getTokenType() != 'int':
+                                print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                        else:
+                            print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
                         return
         self.current_token_value = 0
         
@@ -187,7 +228,6 @@ class Semantic:
     # 3 - Uma function ou procedure tem que ser declarada antes de a utilizar.
     def methodDeclaredFirst(self, tokens):
         values = list(map(self.getTokenValue,tokens))
-        print(values)
         if values[0] not in self.functions_table:
             print(self.printSemanticError(tokens[0].current_line, "A function/procedure should be declared before call",tokens[0].getValue()+"()"))
 
@@ -208,34 +248,44 @@ class Semantic:
     
     # 6 - A função tem que ser chamada com a quantidade de parâmetros e tipos corretos
     def functionCallParameters(self, tokens):
-        current_context = tokens.pop(0)
-        values = list(map(self.getTokenValue,tokens))
+        tokens2 = tokens.copy()
+        current_context = tokens2.pop(0)
+        values = list(map(self.getTokenValue,tokens2))
         function_call_name = values.pop(0)
-        tokens.pop(0)
-        current_parameter_index = 0
-        total_parameters_function = len(self.functions_table[function_call_name].getParameters()) if function_call_name in self.functions_table else 0
-        while self.hasNextToken(tokens):
-            token = self.nextToken(tokens)
-            if token.getValue() == ')':
-                break
-            if token.getType() == 'IDE':
-                if current_parameter_index >= total_parameters_function:
-                    print(self.printSemanticError(token.current_line, "You passed more arguments than the function needs",token.getValue()))
-                    break
-                if(not self.isVariableDeclaredInsideFunction(current_context, token.getValue())):
-                    print(self.printSemanticError(token.current_line, "A variable must be declared first before it's used on a function call",token.getValue()))
-                    break
-                function_parameter = self.functions_table[function_call_name].getParameters()[current_parameter_index]
-                value_symbol = self.getSymbol('local', token.getValue(),current_context)
-                if(not self.areTwoVariablesWithTheSameType(value_symbol, function_parameter)):
-                    print(self.printSemanticError(token.current_line, "Function/procedure call with the wrong parameter type",token.getValue()))
-                current_parameter_index+=1
-        if current_parameter_index < total_parameters_function:
-                    print(self.printSemanticError(token.current_line, "You passed less arguments than the function needs",token.getValue()))
-        self.current_token_value = 0
+        tokens2.pop(0)
+        found = False
+        quantity_parameters = 0
+        same_type = True
+        all_functions = self.getAllFunctionsWithSimilarName(function_call_name)
+        quantity, types = self.getQuantityOfParametersAndTypes(tokens2, current_context)
+    
+        for function_name in all_functions:
+            function_parameter = self.functions_table[function_name].getParameters()
+            params = list(map(self.getSymbolValue,function_parameter))
+            if quantity == len(function_parameter):
+                if types == params:
+                    found = True
+                    same_type = True
+                    quantity_parameters = 0
+                    return
+                else: 
+                    same_type = False
+            elif quantity < len(function_parameter):
+                quantity_parameters = -1
+            elif quantity > len(function_parameter):
+                quantity_parameters = 1
 
-
-    # TODO: 7 - Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro). [FINALIZAR]
+        if not found:
+            if not same_type:
+                print(self.printSemanticError(tokens2[0].current_line, "Function/procedure call with the wrong parameter type",tokens2[0].getValue()))
+            else:
+                if quantity_parameters == 1:
+                    print(self.printSemanticError(tokens2[0].current_line, "You passed more arguments than the function needs",tokens2[0].getValue()))
+                elif quantity_parameters == -1:
+                    print(self.printSemanticError(tokens2[0].current_line, "You passed less arguments than the function needs",tokens2[0].getValue()))
+            
+                
+    # TODO: 7 - Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro). 
     def verifyIfArithmeticExpressionIsCorrect(self, tokens):
         current_context = tokens[0]
         tokens = tokens[1:]
@@ -255,7 +305,7 @@ class Semantic:
                 if has_arithmetic:
                     if  previous_symbol != '' and symbol is not None and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
                         print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
-                        has_arithmetic = False
+                    has_arithmetic = False
                 if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
                     previous_symbol = symbol
             elif token.getType() == 'ART':
@@ -419,15 +469,16 @@ class Semantic:
 
     def notAllowAssignNotInitializedVariable(self, tokens):
         tokens2 = tokens.copy()
+        
         function_name = tokens2.pop(0)
         identifier1, identifier2 = tokens2[0], tokens2[2]        
         symbol1 = self.getSymbol('local', identifier1.getValue(), function_name)
         symbol2 = self.getSymbol('local', identifier2.getValue(), function_name)
-        
+        values = list(map(self.getTokenValue, tokens2))
         if(not symbol1 or not symbol2): return
         if(symbol2.getValue()==''):
             print(self.printSemanticError(identifier1.current_line, "An identifier must be initialized before assign to a variable", identifier2.getValue()))
-        elif(symbol1.getTokenType()!=symbol2.getTokenType()):
+        elif(symbol1.getTokenType()!=symbol2.getTokenType()  or (symbol1.getIsArray() != symbol2.getIsArray() and ('[' not in values))  ):
             print(self.printSemanticError(identifier1.current_line, "Variables must be the same type", identifier2.getValue()))
     
     def notAllowBooleanAndStringIncrements(self, tokens):
@@ -491,3 +542,37 @@ class Semantic:
         token = tokens[0]
         if 'start' in self.symbol_table['local']:
             print(self.printSemanticError(token.current_line, "You cannot override the start procedure ",token.getValue()))
+
+    def verifyIfCallingAProcedureInsteadOfAFunction(self, tokens):
+        tokens2 = tokens.copy()
+        current_context = tokens2[0]
+        pre_variable = tokens2[1]
+        function_call_name = tokens[3]
+        quantity, types = self.getQuantityOfParametersAndTypes(tokens2[4:], current_context)
+        for func in self.functions_table:
+            function_parameter = self.functions_table[func].getParameters()
+            func_param_size = len(function_parameter)
+            if func in function_call_name.getValue():
+                if quantity == func_param_size:
+                    if self.functions_table[func].getIsProcedure():
+                        print(self.printSemanticError(function_call_name.current_line, "Procedures doesn't return a value ",function_call_name.getValue()))
+
+    def verifyIfFunctionReturnIsEquivalent(self, tokens):
+        tokens2 = tokens.copy()
+        current_context = tokens2[0]
+        pre_variable = tokens2[1]
+        symbol = self.getSymbol('local', pre_variable.getValue(), current_context)
+        if symbol:
+            function_call_name = tokens[3]
+            quantity, types = self.getQuantityOfParametersAndTypes(tokens2[4:], current_context)
+            for func in self.functions_table:
+                function_parameter = self.functions_table[func].getParameters()
+                func_param_size = len(function_parameter)
+                if func in function_call_name.getValue():
+                    if quantity == func_param_size:
+                        if self.functions_table[func].getAssignmentType().lower() != symbol.getTokenType():
+                            print(self.printSemanticError(function_call_name.current_line, "Function return's type doesn't match with variable type ",function_call_name.getValue()))
+        else:
+            print(self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
+
+        

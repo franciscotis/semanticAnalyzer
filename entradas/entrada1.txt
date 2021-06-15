@@ -1,45 +1,19 @@
-var{
-  int oioi,abc;
-  real teste[12];
+
+procedure one(){
+  print("kkk");
+  
 }
 
-
-struct Pessoa{
-  var{
-    string nome;
-  }
+procedure testeteste(){
+  print("e ai?");
 }
 
-function int roi(){
-  var {
-    int i = 0;
-  }
-  return i;
+function real retorna(){
+  return 10.2;
 }
 
-function int roi(int o){
-  print("hello world");
-  return 0;
-}
-
-function int roi(real k){
-  print("hello world");
-  return 0;
-}
-
-procedure teste(){
-  print("eae");
-}
-
-
-
-procedure teste(int k, real k){
-  print("eae");
-}
-
-function real teste(int a){
-  print("shalom")
-  return 0;
+function int retorna(int a){
+  return 10;
 }
 
 procedure start ()
@@ -47,15 +21,15 @@ procedure start ()
   
   var{
     int oi[2], k = 20;
-    pess abc;
+    real ooo = 20.1;
+    string abc = "ab";
   }
 
-  k = teste(1) + k - 20;
+  k = retorna(10);
 
-
-  typedef Pessoa oi;
+  k = 10 + 15;
+  
   
 
-  oi[k] = k;
     
 }

@@ -19,6 +19,8 @@ class Symbol:
         self.isConst = False
         self.assignment_type = ''
         self.scope = ''
+        self.isArray = False
+        self.isProcedure = False
         
 
     def setAssignmentType(self,type):
@@ -26,6 +28,18 @@ class Symbol:
     
     def getAssignmentType(self):
         return self.assignment_type
+
+    def getIsArray(self):
+        return self.isArray
+    
+    def setIsArray(self, array):
+        self.isArray = array
+
+    def getIsProcedure(self):
+        return self.isProcedure
+
+    def setIsProcedure(self, procedure):
+        self.isProcedure = procedure
 
     def isAConstSymbol(self):
         return self.isConst
@@ -35,6 +49,9 @@ class Symbol:
 
     def getIdentifier(self):
         return self.identifier
+
+    def getIdentifierType(self):
+        return self.identifier_type
 
     def removeParameters(self, symbol):
         self.parameters.remove(symbol)

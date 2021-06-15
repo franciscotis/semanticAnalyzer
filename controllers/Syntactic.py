@@ -166,8 +166,10 @@ class Syntactic:
                     self.contFCall()
                 else:
                      self.token_list.append(self.printError(self.token.current_line, self.firstSet["CONTFCALL"], self.token.getValue()))
+                self.semantic.analyze(self.symbol_table, ['verifyIfCallingAProcedureInsteadOfAFunction','verifyIfFunctionReturnIsEquivalent'],list(chain([self.current_method, self.declared_function], self.token_value_list)), self.functions_table)
         elif self.token.getType() in self.firstSet["FUNCTIONCALL"]:
             self.functionCall()
+            
         elif self.token.getValue() == '(':
             self.getNextToken()
             if self.token.getValue() in self.firstSet["LOGICALOP"] or self.token.getType() in self.firstSet["LOGICALOP"]:
@@ -270,12 +272,10 @@ class Syntactic:
 
     def vetorE1(self):
         if self.token.getValue() =='[':
-            self.token_value_list = []
             self.getNextToken()
             if self.token.getValue() in self.firstSet["ARITMETICOP"] or self.token.getType() in self.firstSet["ARITMETICOP"]:
                 self.aritimeticOp()
                 self.semantic.analyze(self.symbol_table, ['verifyIfVetorIndexIsInteger'], list(chain([self.current_method], self.token_value_list)), self.functions_table)
-                self.token_value_list = []
                 if self.token.getValue() == ']':
                     self.getNextToken()
                     if self.token.getValue() in self.firstSet["VETORE2"]:
@@ -431,6 +431,7 @@ class Syntactic:
                 self.token_list.append(self.printError(self.token.current_line, self.firstSet["PROXVAR"], self.token.getValue()))
                 self.getError(self.followSet["VARDECLARATION"])
         elif self.token.getValue() == '[':
+            self.current_symbol.setIsArray(True)
             self.getNextToken()
             if(self.token.getValue() in self.firstSet["ARITMETICOP"] or self.token.getType() in self.firstSet["ARITMETICOP"]):
                 self.aritimeticOp()
@@ -1584,6 +1585,7 @@ class Syntactic:
     def procedure(self):
         if self.token.getType() == "IDE":
             symbol = Symbol(self.token.getValue(),'function','IDE')
+            symbol.setIsProcedure(True)
             if self.token.getValue() in self.functions_table and self.token.getValue() in self.symbol_table['local']:
                 qtd = 0
                 for key in self.functions_table:
@@ -1623,6 +1625,7 @@ class Syntactic:
         elif self.token.getValue() =='start':
             self.semantic.analyze(self.symbol_table, ['startOverloading'], [self.token], self.functions_table)
             symbol = Symbol(self.token.getValue(),'function','IDE')
+            symbol.setIsProcedure(True)
             if self.token.getValue() in self.functions_table and self.token.getValue() in self.symbol_table['local']:
                 qtd = 0
                 for key in self.functions_table:
@@ -1816,8 +1819,6 @@ class Syntactic:
                 self.semantic.analyze(self.symbol_table, ['methodDeclaredFirst'],[self.declared_function], self.functions_table)
                 self.token_value_list = []
                 self.functionCall()
-                self.semantic.analyze(self.symbol_table, ['functionCallParameters'],list(chain([self.current_method, self.declared_function], self.token_value_list)), self.functions_table)
-                self.token_value_list = []
             elif self.token.getValue() == '=':
                 self.atribuicao(False)
                 self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect','notAllowAConstraintToReceiveValue', 'notAllowAssignNotInitializedVariable'],list(chain([self.current_method, self.declared_function], self.token_value_list)))
@@ -1902,6 +1903,8 @@ class Syntactic:
             if self.token.getValue() in self.firstSet["CONTFCALL"] or self.token.getType() in self.firstSet["CONTFCALL"]:
                 self.contFCall()
                 if self.token.getValue() == ';':
+                    self.semantic.analyze(self.symbol_table, ['functionCallParameters'],list(chain([self.current_method, self.declared_function], self.token_value_list)), self.functions_table)
+                    self.token_value_list = []
                     self.getNextToken()
             else:
                 self.token_list.append(self.printError(self.token.current_line, self.firstSet["CONTFCALL"], self.token.getValue()))
