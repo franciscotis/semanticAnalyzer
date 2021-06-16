@@ -559,24 +559,35 @@ class Semantic:
         if type(tokens2[0]) == str:
             current_context = tokens2[0]
         values = list(map(self.getTokenValue,tokens2[1:]))
+        print(values)
         tokens2 = tokens2[1:]
         expressao_valida = False
         has_boolean = False
         last_token = tokens2[1]
         expressions_list = []
+        dot = False
+        struct_name = ''
+        symbol = ''
         while self.hasNextToken(tokens2):
             token = self.nextToken(tokens2)
             
             last_token = token
             if token.getType() == 'IDE' or token.getType() == 'PRE':
-                symbol = self.getSymbol('local', token.getValue(), current_context)
-                if not symbol:
+                if dot:
+                    if struct_name!= '':
+                        struct_symbol = self.getSymbol('local', struct_name, current_context)
+                        symbol = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
+                else:
+                    if self.peekNextToken(tokens2).getValue() != '.':
+                        symbol = self.getSymbol('local', token.getValue(), current_context)
+
+                if symbol == '' or symbol == None:
                     symbol = self.getSymbol('global', token.getValue())
                     if not symbol:
                         if (token.getType() == 'PRE' and (token.getValue() == 'true' or token.getValue() == 'false')):
                             has_boolean = True
                 else:
-                    if (symbol.getValue() == 'true' or symbol.getValue() == 'false'):
+                    if (symbol.getValue() == 'true' or symbol.getValue() == 'false' or symbol.getTokenType() == 'boolean'):
                         has_boolean = True
             elif token.getType() == 'REL':
                 if self.isRelational(token.getValue()):
@@ -595,7 +606,12 @@ class Semantic:
                     else:
                         expressions_list.append(has_boolean or expressao_valida)
                         has_boolean = False
-                        expressao_valida = False                  
+                        expressao_valida = False    
+                elif token.getValue() == '.':
+                    dot = True
+                    if tokens2[tokens2.index(token)-1].getValue() != 'local' and tokens2[tokens2.index(token)-1].getValue() != 'global':
+                        struct_name = tokens2[tokens2.index(token)-1].getValue()
+
         self.current_token_value = 0
         if len(expressions_list) == 0:
             expressions_list.append(False)

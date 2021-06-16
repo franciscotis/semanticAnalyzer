@@ -4,6 +4,7 @@ struct Pessoa
 		string nome;
 		int idade;
 		real salario;
+        boolean teste;
 	}
 
 }
@@ -24,7 +25,9 @@ procedure start ()
         
     }
 
-    teste = teste + local.teste;
+   if(local.pess.teste) then{
+       print("e ai");
+   }
 
 
 
