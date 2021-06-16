@@ -479,58 +479,74 @@ class Semantic:
         has_arithmetic = False
         is_local = False
         is_global = False
+        dot = False
+        struct_val = ''
         while self.hasNextToken(tokens):
             token = self.nextToken(tokens)
-            if token.getValue() == '.' and not first_local:
-                first_local = True
-                local_global = True
+            if token.getValue() == '.':
+                if tokens[tokens.index(token)-1].getValue() != 'local' and tokens[tokens.index(token)-1].getValue() != 'global':
+                    dot = True
+                    struct_val = tokens[tokens.index(token)-1]
+                if not first_local:
+                    first_local = True
+                    local_global = True
             else:
                 if local_global:
                     local_global = False
-                    if token.getType() == 'PRE':
-                        if token.getValue() == 'local':
-                            is_local = True
-                        elif token.getValue() == 'global':
-                            is_global = True
-                    if token.getType() == 'IDE':
-                        if first:
-                            first = False
-                            is_local = local_var
-                            is_global = global_var
-                        if is_local or is_global:
-                            if is_local:
-                                symbol = self.getSymbol('local', token.getValue(), current_context)
-                                if not symbol:
-                                    print(self.printSemanticError(token.current_line, "Local identifier not found  ",token.getValue()))
-                            elif is_global:
-                                symbol = self.getSymbol('global', token.getValue())
-                                if not symbol:
-                                    print(self.printSemanticError(token.current_line, "Global identifier not found  ",token.getValue()))
-                            is_local = is_global = False
-
-                            if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
-                                previous_symbol = symbol
-                            
-                        else:
+                if token.getType() == 'PRE':
+                    if token.getValue() == 'local':
+                        is_local = True
+                    elif token.getValue() == 'global':
+                        is_global = True
+                if token.getType() == 'IDE':
+                    if first:
+                        first = False
+                        is_local = local_var
+                        is_global = global_var
+                    if is_local or is_global:
+                        if is_local:
                             symbol = self.getSymbol('local', token.getValue(), current_context)
                             if not symbol:
+                                print(self.printSemanticError(token.current_line, "Local identifier not found  ",token.getValue()))
+                        elif is_global:
+                            symbol = self.getSymbol('global', token.getValue())
+                            if not symbol:
+                                print(self.printSemanticError(token.current_line, "Global identifier not found  ",token.getValue()))
+                        is_local = is_global = False
+                    else:
+                        if dot:
+                            dot = False
+                            struct_variable = self.getSymbol('local', struct_val.getValue(), current_context)
+                            symbol = self.getSymbol('local', token.getValue(), struct_variable.getTokenType())
+                        else:
+                            if self.peekNextToken(tokens).getValue() != '.':
+                                symbol = self.getSymbol('local', token.getValue(), current_context)
+                            if not symbol:
                                 symbol = self.getSymbol('global', token.getValue())
-                                if not symbol:
-                                    if token.getValue() in self.functions_table:
-                                        symbol = self.functions_table[token.getValue()]
-                                    if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
-                                        previous_symbol = symbol
-                        if has_arithmetic:
-                            if  previous_symbol != '' and symbol is not None and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
-                                print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
-                            has_arithmetic = False
+                        if not symbol:
+                            if token.getValue() in self.functions_table:
+                                symbol = self.functions_table[token.getValue()]
+                    if has_arithmetic:
+                        if  previous_symbol != '' and symbol is not None and previous_symbol.getTokenType() != symbol.getTokenType():
+                            print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
+                        has_arithmetic = False
 
-                    elif token.getType() == 'ART':
-                        if self.isArithmetic(token.getValue()):
-                            if token.getValue() == '/':
-                                is_division = True
-                            has_arithmetic = True
-                            is_local = is_global = False
+                    if  previous_symbol != '' and symbol is not None and previous_symbol.getTokenType() != symbol.getTokenType():
+                            print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
+                            return
+
+                    if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or (symbol is not None and previous_symbol == ''):
+                            previous_symbol = symbol
+                    
+                    
+
+                elif token.getType() == 'ART':
+                    if self.isArithmetic(token.getValue()):
+                        if token.getValue() == '/':
+                            is_division = True
+                            
+                        has_arithmetic = True
+                        is_local = is_global = False
                 
         self.current_token_value = 0
 

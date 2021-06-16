@@ -19,12 +19,13 @@ procedure start ()
 {
     var{
         int teste = 20, aiai[20];
+        real salada = 20.1;
         Pessoa pess;
         
     }
-    func(teste,pess.idade);
 
-    aiai[pess.idade] = 20;
+    teste = teste + local.teste;
+
 
 
 }
