@@ -47,9 +47,8 @@
 21 IDE a
 21 REL >
 21 NRO 7
+21 DEL )
 22 DEL {
-ERROR on line 22: Expecting [)]. Got: '{'
-ERROR on line 22: Expecting [}]. Got: '{'
 23 IDE a
 23 REL =
 23 NRO 2

@@ -217,11 +217,12 @@ class Semantic:
         current_context = tokens2[0]
         tokens2 = tokens2[1:]
         values = list(map(self.getTokenValue,tokens2))
-        #print(values)
         local_global = False
         first_local = False
-        while self.hasNextToken(tokens2):
-            token = self.nextToken(tokens2)
+        index_of_array_name = (values.index("["))-1
+        tkns = tokens2[index_of_array_name:]
+        while self.hasNextToken(tkns):
+            token = self.nextToken(tkns)
             if token.getValue() == '.' and not first_local:
                 local_global = True
                 first_local = True
@@ -232,6 +233,8 @@ class Semantic:
                     if token.getType() == "NRO":
                         if '.' in token.getValue():
                             print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
+                            return
+                        else:
                             return
                     if token.getType() == "CAD":
                         print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
@@ -360,11 +363,10 @@ class Semantic:
         is_local = False
         is_global = False
         is_del = False
-        function_call_name = ''
+        function_call_name = declared_function
         is_rel = False
         while self.hasNextToken(tokens2):
             token = self.nextToken(tokens2)
-
             if token.getType() == 'REL':
                 if token.getValue() == '=':
                     is_rel = True
@@ -481,9 +483,11 @@ class Semantic:
                             if  previous_symbol != '' and symbol is not None and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
                                 print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
                             has_arithmetic = False
-                                
+
                     elif token.getType() == 'ART':
                         if self.isArithmetic(token.getValue()):
+                            if token.getValue() == '/':
+                                is_division = True
                             has_arithmetic = True
                             is_local = is_global = False
                 
@@ -522,7 +526,6 @@ class Semantic:
                     expressao_valida = True
             elif token.getType() == 'LOG':
                 if self.isLogical(token.getValue()):
-                    expressions_list.append(has_boolean or expressao_valida)
                     has_boolean = False
                     expressao_valida = False
             elif token.getType() == 'DEL':
@@ -638,11 +641,12 @@ class Semantic:
                     current_type = symbol
                 if not symbol:
                     symbol = self.getSymbol('global', token.getValue())
-                    if (symbol and current_type.getIdentifier()!= symbol.getIdentifier()) or (symbol and current_type == ''):
-                        current_type = symbol
-                    if symbol and current_type.getIdentifier()!= symbol.getIdentifier():
-                        valor_verdadeiro = False
-                        relational_value = False
+                    if type(symbol)!= str and type(current_type)!= str:
+                        if (symbol and current_type.getIdentifier()!= symbol.getIdentifier()) or (symbol and current_type == ''):
+                            current_type = symbol
+                        if symbol and current_type.getIdentifier()!= symbol.getIdentifier():
+                            valor_verdadeiro = False
+                            relational_value = False
                     if not symbol:
                         if (token.getType() == 'PRE' and (token.getValue() == 'true' or token.getValue() == 'false')):
                             current_type = 'BOOLEAN'
@@ -671,6 +675,9 @@ class Semantic:
         has_local_global = False
         function_name = tokens2.pop(0)
         values = list(map(self.getTokenValue, tokens2))
+        if type(tokens2[0])!= str and type(tokens2[1])!=str and tokens2[0].getValue() == tokens2[1].getValue():
+            tokens2.pop(0)
+            values.pop(0)
         has_rel = False
         token_left = True
         first_token = ''
@@ -687,14 +694,20 @@ class Semantic:
             
             if token.getType() == 'REL':
                 has_rel = True
+                
 
-        
+            if token.getType() != 'IDE':
+                if token_left and self.peekNextToken(tokens2).getValue()!= '.' and token.getValue()!= '.':
+                    print(self.printSemanticError(token.current_line, "Invalid variable", token.getValue()))
+                    return
+
             if token.getType() == 'IDE':
                 if has_rel:
                     has_rel = False
                     if token.getValue() in self.functions_table:
                         isFunction = True
                 if token_left:
+                    
                     token_left = False
                     symblocal = self.getSymbol('local', token.getValue(), function_name)
                     symbglobal = self.getSymbol('global', token.getValue())
@@ -729,6 +742,7 @@ class Semantic:
                             print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
                         return
                     else:
+                        
                         if(symbol1.getTokenType()!= first_token.getTokenType() or (symbol1.getIsArray() != first_token.getIsArray() and ('[' not in values))):
                             if not (symbol1 is not None and symbol1.getIsProcedure()) and not isFunction:
                                 print(self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
@@ -738,7 +752,6 @@ class Semantic:
                     if not (symbol1 is not None and symbol1.getIsProcedure()):
                         print(self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
         self.current_token_value = 0
-            
     
     def notAllowBooleanAndStringIncrements(self, tokens):
         tokens2 = tokens.copy()
@@ -936,7 +949,6 @@ class Semantic:
         function_name = tokens.pop(0)
         tokens2 = tokens[0:-1]
 
-        #print(list(map(self.getTokenValue, tokens2)))
         if(len(tokens2)==0): return
 
         if(len(tokens2)==1):
@@ -947,11 +959,16 @@ class Semantic:
                 if(self.functions_table.get(function_name).getAssignmentType() == symbol.getAssignmentType()): return
 
             elif(self.functions_table.get(function_name).getAssignmentType() == self.getDataType(token)): return
-            print(self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()))
+            if token.getValue() in self.functions_table:
+                print(self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()))
 
         if(tokens2[0].getType()=='IDE'):
             if(not self.functions_table.get(tokens2[0].getValue())):
-                print(self.printSemanticError(tokens2[0].current_line, "A function should be declared before call", tokens2[0].getValue()+"()"))
+                symbol = self.getSymbol('local', token.getValue(), function_name)
+                if not symbol:
+                    symbol = self.getSymbol('global', token.getValue())
+                    if not symbol:
+                        print(self.printSemanticError(tokens2[0].current_line, "A function should be declared before call", tokens2[0].getValue()+"()"))
                 return
         
             function_identifier = self.functions_table.get(tokens2[0].getValue())

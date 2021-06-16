@@ -1816,7 +1816,6 @@ class Syntactic:
             self.is_global = False
             self.arit = False
             self.is_local = False
-            self.semantic.analyze(self.symbol_table, ['notAllowAssignNotInitializedVariable'],list(chain([self.current_method], self.token_value_list)) )
             self.token_value_list = []
         elif self.token.getValue() in self.firstSet["READ"]:
             self.read()
@@ -1857,12 +1856,10 @@ class Syntactic:
             if self.token.getValue() == '(':
                 self.semantic.analyze(self.symbol_table, ['methodDeclaredFirst',],[self.declared_function], self.functions_table)
                 self.token_value_list = []
+                self.token_value_list.append(self.token)
                 self.functionCall()
             elif self.token.getValue() == '=':
                 self.atribuicao(False)
-                self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.is_local, self.is_global, self.current_method], self.token_value_list)) )
-                self.semantic.analyze(self.symbol_table, ['notAllowAConstraintToReceiveValue', 'notAllowAssignNotInitializedVariable'],list(chain([self.current_method, self.declared_function], self.token_value_list)))
-                self.token_value_list = []
             elif self.token.getValue() == '++':
                 self.incrementOp(False)
                 if self.token.getValue() ==';':
@@ -1926,6 +1923,9 @@ class Syntactic:
                 self.getNextToken()
                 if self.token.getValue() in self.firstSet["VALUE"] or self.token.getType() in self.firstSet["VALUE"]:
                     self.value()
+                    self.semantic.analyze(self.symbol_table, ['verifyIfArithmeticExpressionIsCorrect'],list(chain([self.is_local, self.is_global, self.current_method], self.token_value_list)) )
+                    self.semantic.analyze(self.symbol_table, ['notAllowAConstraintToReceiveValue', 'notAllowAssignNotInitializedVariable'],list(chain([self.current_method], self.token_value_list)))
+                    self.token_value_list = []
                     if self.token.getValue() == ';':
                         self.getNextToken()
                     else:
