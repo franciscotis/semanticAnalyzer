@@ -8,6 +8,10 @@ struct Pessoa
 
 }
 
+procedure func(int a, int b){
+    print("oi");
+}
+
 
 
 
@@ -18,6 +22,7 @@ procedure start ()
         Pessoa pess;
         
     }
+    func(teste,pess.idade);
 
     aiai[pess.idade] = 20;
 

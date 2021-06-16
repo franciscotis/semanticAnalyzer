@@ -188,6 +188,9 @@ class Semantic:
                     value_symbol = self.getSymbol('local', token[1].getValue(),current_context)
                     if not value_symbol:
                         value_symbol = self.getSymbol('global', token[1].getValue())
+                elif token[0] == 'struct':
+                    tkn = self.getSymbol('local', token[2], current_context)
+                    value_symbol = self.getSymbol('local',token[1].getValue(), tkn.getTokenType())  
                 if token[1].getValue() == ';':
                     break
                 if value_symbol is not None:
@@ -316,8 +319,8 @@ class Semantic:
         found_local = False
         is_global = tokens2[1]
         found_global = False
-        current_method = tokens[2]
-        identifier = tokens[3]
+        current_method = tokens2[2]
+        identifier = tokens2[3]
         is_function = False
         encontrado = False
         if identifier.getValue() in self.functions_table:
@@ -335,6 +338,14 @@ class Semantic:
                     encontrado = True
                     if is_local:
                         found_local = True
+            if not encontrado:
+                for tab in self.symbol_table['local']:
+                    for simbolo in self.symbol_table['local'][tab]:
+                        if identifier.getValue() == simbolo.getIdentifier():
+                            encontrado = True
+                            if is_local:
+                                found_local = True
+            
             if current_method in self.functions_table:
                 for parametro in self.functions_table[current_method].getParameters():
                     if identifier.getValue() == parametro.getIdentifier():
@@ -368,10 +379,6 @@ class Semantic:
                 print(self.printSemanticError(tokens[index].current_line, "A struct should only extends another struct if the second one exists", tokens[index].getValue()))
 
 
-    # TODO: 5 - Sobrecarga realmente tem que ser sobrecarga (e não sobrescrita).
-    def verifyIfOverloadExists(self, tokens):
-        pass
-        
     
     # 6 - A função tem que ser chamada com a quantidade de parâmetros e tipos corretos
     def functionCallParameters(self, tokens):
@@ -391,6 +398,8 @@ class Semantic:
         is_del = False
         function_call_name = declared_function
         is_rel = False
+        dot = False
+        struct_value = ''
         while self.hasNextToken(tokens2):
             token = self.nextToken(tokens2)
             if token.getType() == 'REL':
@@ -399,6 +408,9 @@ class Semantic:
             if token.getType() == 'DEL':
                 if token.getValue() == '(':
                     is_del = True
+                if token.getValue() == '.' and tokens2[tokens2.index(token)-1].getType() != 'PRE':
+                    dot = True
+                    struct_value = tokens2[tokens2.index(token)-1].getValue()
             if is_rel:
                 if token.getType() =='IDE':
                     function_call_name = token
@@ -409,24 +421,27 @@ class Semantic:
                     if token.getValue() == 'local' or token.getValue() == 'global':
                         is_local = True if token.getValue() == 'local' else False
                         is_global = True if token.getValue() == 'global' else False
+
                 if token.getType() == 'IDE':
-                    if is_local:
-                        params.append(['local',token])
-                    elif is_global:
-                        params.append(['global',token])
-                    else:
-                        params.append(['',token])
+                    if self.peekNextToken(tokens2).getValue() != ".":
+                        if dot:
+                            dot = False
+                            params.append(['struct', token, struct_value])
+                        elif is_local:
+                            params.append(['local',token])
+                        elif is_global:
+                            params.append(['global',token])
+                        else:
+                            params.append(['',token])
                 if token.getType() == 'NRO' or token.getType() =='CAD':
                     params.append(['',token])
         self.current_token_value = 0
-
         all_functions = self.getAllFunctionsWithSimilarName(function_call_name.getValue())
-
         quantity, types = self.getQuantityOfParametersAndTypes2(params, current_context)
         for function_name in all_functions:
             function_parameter = self.functions_table[function_name].getParameters()
             params = list(map(self.getSymbolValue,function_parameter))
-            #print(function_name,params)
+           # print(function_name,params)
             if quantity == len(function_parameter):
                 if types == params:
                     found = True
@@ -608,31 +623,6 @@ class Semantic:
             if variable_symbol.isAConstSymbol():
                 print(self.printSemanticError(variable_token.current_line, "You cannot assign values to const variables after its declaration ",variable_token.getValue()))
 
-
-    # Um identificador deve ser declarado antes de seu uso
-
-    '''
-    def verifyIfIdentifierExists(self, tokens):
-        identifier = tokens[0]
-        encontrado = False
-        if identifier.getValue() not in self.symbol_table['local']:
-            for global_symbol in self.symbol_table['global']:
-                if identifier.getValue() == global_symbol.getIdentifier():
-                    encontrado = True
-            for estrutura_local in self.symbol_table['local']:
-                for simbolo in self.symbol_table['local'][estrutura_local]:
-                    if identifier.getValue() == simbolo.getIdentifier():
-                        encontrado = True
-                if estrutura_local in self.functions_table:
-                    for parametro in self.functions_table[estrutura_local].getParameters():
-                        if identifier.getValue() == parametro.getIdentifier():
-                            encontrado = True
-
-        else:
-            encontrado = True
-        if not encontrado:
-            print(self.printSemanticError(identifier.current_line, "An identifier must be initialized before use ",identifier.getValue()))
-        '''
 
 
     # 14 - Não é possível realizar a comparação de valores de tipos diferentes.
