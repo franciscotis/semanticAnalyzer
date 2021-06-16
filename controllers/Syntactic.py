@@ -28,6 +28,7 @@ class Syntactic:
         self.current_function_parameters = ''
         self.is_global = False
         self.is_local = False
+        self.previous_tkn = ''
         self.token_value_list = []
         self.typedef_list = {}
         self.semantic = semantic
@@ -39,6 +40,9 @@ class Syntactic:
 
     def getNextToken(self):
         try:
+            if self.token is not None and self.token != '':
+                self.previous_tkn = self.token
+
             self.token = self.lexical.obterToken()
             self.token_list.append(self.token.toString())
             self.token_value_list.append(self.token)
@@ -174,7 +178,7 @@ class Syntactic:
                     self.contFCall()
                 else:
                      self.token_list.append(self.printError(self.token.current_line, self.firstSet["CONTFCALL"], self.token.getValue()))
-                self.semantic.analyze(self.symbol_table, ['verifyIfCallingAProcedureInsteadOfAFunction','verifyIfFunctionReturnIsEquivalent'],list(chain([self.current_method, self.declared_function], self.token_value_list)), self.functions_table)
+                self.semantic.analyze(self.symbol_table, ['verifyIfCallingAProcedureInsteadOfAFunction','verifyIfFunctionReturnIsEquivalent','functionCallParameters'],list(chain([self.current_method, self.declared_function], self.token_value_list)), self.functions_table)
         elif self.token.getType() in self.firstSet["FUNCTIONCALL"]:
             self.functionCall()
             
@@ -1843,10 +1847,11 @@ class Syntactic:
     def preFuncionAtribuicao(self):
         if self.token.getType() == "IDE":
             self.token_value_list = []
+            self.token_value_list.append(self.token)
             self.declared_function = self.token
             self.identificador()
             if self.token.getValue() == '(':
-                self.semantic.analyze(self.symbol_table, ['methodDeclaredFirst'],[self.declared_function], self.functions_table)
+                self.semantic.analyze(self.symbol_table, ['methodDeclaredFirst',],[self.declared_function], self.functions_table)
                 self.token_value_list = []
                 self.functionCall()
             elif self.token.getValue() == '=':

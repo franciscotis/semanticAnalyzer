@@ -60,7 +60,6 @@ CAD  - Cadeia de Caracteres
 [x] Não é possível declarar uma variável global se outra com o mesmo nome já foi declarada anteriormente. 
 [x] Não é possível declarar uma variável local se outra com o mesmo nome já foi declara anteriormente. 
 [x] É possível declarar uma variável local com o mesmo nome de uma variável global. 
-[x] Não é possível atribuir uma variável sem valor a outra. #TODO - (local/global ok)
 [x] Não é possível atribuir um valor a uma constante, após a sua declaração. (local/global ok)
 [ ] Não é possível declarar tipos diferentes de valores em um array (e.g. int a[] = {1,2,3,"abc",4}). #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
 [ ] É possível fazer a concatenação de duas strings a partir do operador '+'. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
@@ -82,7 +81,7 @@ CAD  - Cadeia de Caracteres
 
 [x] Função ou procedure tem que ser declarada antes de a utilizar. #TODO - VERIFICAR SE USA O PARÂMETRO É UM VETOR
 
-[x] A função tem que ser chamada com a quantidade de parâmetros e tipos corretos. #TODO - VERIFICAR SE O DADO NÃO É UM TYPEDEF global e local
+[x] A função tem que ser chamada com a quantidade de parâmetros e tipos corretos. (global e local ok ) #TODO - VERIFICAR SE O DADO NÃO É UM TYPEDEF 
 [x] O retorno da função tem que ser igual ao valor retornado
 [x] Não é possível fazer overloading do procedure start
 [x] Para ter a sobrecarga de métodos em geral, é avaliado a quantidade e tipo de parâmetros além do tipo de retorno. #TODO - VERIFICAR SE O DADO NÃO É UM TYPEDEF

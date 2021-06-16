@@ -146,13 +146,16 @@ class Semantic:
                 functions.append(func)
         return functions
 
-    def getQuantityOfParametersAndTypes(self, tokens, current_context):
+    def getQuantityOfParametersAndTypes(self, tokens, current_context= False):
         quantity = 0
         types  = []
         for token in tokens:
-            if token.getType() == 'IDE' or token.getType() == 'NRO':
+            if token.getType() == 'IDE' or token.getType() == 'NRO' or token.getType() =='CAD':
                 quantity+=1
-                value_symbol = self.getSymbol('local', token.getValue(),current_context)
+                if current_context is not None:
+                    value_symbol = self.getSymbol('local', token.getValue(),current_context)
+                else:
+                    value_symbol = self.getSymbol('global', token.getValue())
                 if token.getValue() == ';':
                     break
                 if value_symbol is not None:
@@ -163,8 +166,38 @@ class Semantic:
                             types.append('real')
                         else:
                             types.append('int')
+                    elif token.getType() == 'CAD':
+                        types.append('string')
         return quantity, types
 
+
+    def getQuantityOfParametersAndTypes2(self, tokens, current_context):
+        quantity = 0
+        types  = []
+        for token in tokens:
+            if token[1].getType() == 'IDE' or token[1].getType() == 'NRO' or token[1].getType() == 'CAD':
+                quantity+=1
+                if token[0] == 'local':
+                    value_symbol = self.getSymbol('local', token[1].getValue(),current_context)
+                elif token[0] == 'global':
+                    value_symbol = self.getSymbol('global', token[1].getValue())
+                elif token[0] == '':
+                    value_symbol = self.getSymbol('local', token[1].getValue(),current_context)
+                    if not value_symbol:
+                        value_symbol = self.getSymbol('global', token[1].getValue())
+                if token[1].getValue() == ';':
+                    break
+                if value_symbol is not None:
+                    types.append(value_symbol.getTokenType())
+                else:
+                    if token[1].getType() == 'NRO':
+                        if '.' in token[1].getValue():
+                            types.append('real')
+                        else:
+                            types.append('int')
+                    elif token[1].getType() == 'CAD':
+                        types.append('string')
+        return quantity, types
 
     
                 
@@ -253,9 +286,11 @@ class Semantic:
         found_global = False
         current_method = tokens[2]
         identifier = tokens[3]
+        is_function = False
         encontrado = False
         if identifier.getValue() in self.functions_table:
             encontrado = True
+            is_function = True
         elif identifier.getValue() not in self.symbol_table['local']:
             for global_symbol in self.symbol_table['global']:
                 if identifier.getValue() == global_symbol.getIdentifier():
@@ -275,14 +310,14 @@ class Semantic:
         else:
             encontrado = True
 
+        if encontrado and is_function:
+            return
         if is_local and not found_local:
             print(self.printSemanticError(identifier.current_line, "Local identifier not found ",identifier.getValue()))
 
         elif is_global and not found_global:
             print(self.printSemanticError(identifier.current_line, "Global identifier not found ",identifier.getValue()))
 
-        elif not encontrado:
-            print(self.printSemanticError(identifier.current_line, "An identifier must be initialized before use ",identifier.getValue()))
 
 
     # 3 - Uma function ou procedure tem que ser declarada antes de a utilizar.
@@ -310,18 +345,57 @@ class Semantic:
     def functionCallParameters(self, tokens):
         tokens2 = tokens.copy()
         current_context = tokens2.pop(0)
-        values = list(map(self.getTokenValue,tokens2))
-        function_call_name = values.pop(0)
-        tokens2.pop(0)
+        declared_function = tokens2.pop(0)
         found = False
         quantity_parameters = 0
         same_type = True
-        all_functions = self.getAllFunctionsWithSimilarName(function_call_name)
-        quantity, types = self.getQuantityOfParametersAndTypes(tokens2, current_context)
-    
+        equal = False
+        params = []
+        got_params = False
+        values = list(map(self.getTokenValue,tokens2))
+        is_local_global = False
+        is_local = False
+        is_global = False
+        is_del = False
+        function_call_name = ''
+        is_rel = False
+        while self.hasNextToken(tokens2):
+            token = self.nextToken(tokens2)
+
+            if token.getType() == 'REL':
+                if token.getValue() == '=':
+                    is_rel = True
+            if token.getType() == 'DEL':
+                if token.getValue() == '(':
+                    is_del = True
+            if is_rel:
+                if token.getType() =='IDE':
+                    function_call_name = token
+                    is_rel = False
+
+            if is_del:
+                if token.getType() == 'PRE':
+                    if token.getValue() == 'local' or token.getValue() == 'global':
+                        is_local = True if token.getValue() == 'local' else False
+                        is_global = True if token.getValue() == 'global' else False
+                if token.getType() == 'IDE':
+                    if is_local:
+                        params.append(['local',token])
+                    elif is_global:
+                        params.append(['global',token])
+                    else:
+                        params.append(['',token])
+                if token.getType() == 'NRO' or token.getType() =='CAD':
+                    params.append(['',token])
+        self.current_token_value = 0
+
+        all_functions = self.getAllFunctionsWithSimilarName(function_call_name.getValue())
+
+        quantity, types = self.getQuantityOfParametersAndTypes2(params, current_context)
         for function_name in all_functions:
             function_parameter = self.functions_table[function_name].getParameters()
             params = list(map(self.getSymbolValue,function_parameter))
+            #print(function_name,params)
             if quantity == len(function_parameter):
                 if types == params:
                     found = True
@@ -337,12 +411,12 @@ class Semantic:
 
         if not found:
             if not same_type:
-                print(self.printSemanticError(tokens2[0].current_line, "Function/procedure call with the wrong parameter type",tokens2[0].getValue()))
+                print(self.printSemanticError(function_call_name.current_line, "Function/procedure call with the wrong parameter type",function_call_name.getValue()))
             else:
                 if quantity_parameters == 1:
-                    print(self.printSemanticError(tokens2[0].current_line, "You passed more arguments than the function needs",tokens2[0].getValue()))
+                    print(self.printSemanticError(function_call_name.current_line, "You passed more arguments than the function needs",function_call_name.getValue()))
                 elif quantity_parameters == -1:
-                    print(self.printSemanticError(tokens2[0].current_line, "You passed less arguments than the function needs",tokens2[0].getValue()))
+                    print(self.printSemanticError(function_call_name.current_line, "You passed less arguments than the function needs",function_call_name.getValue()))
             
                 
     # TODO: 7 - Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro). 
@@ -367,7 +441,6 @@ class Semantic:
             else:
                 if local_global:
                     local_global = False
-                else:
                     if token.getType() == 'PRE':
                         if token.getValue() == 'local':
                             is_local = True
@@ -379,36 +452,37 @@ class Semantic:
                             is_local = local_var
                             is_global = global_var
                         if is_local or is_global:
-                            if is_local or is_global:
-                                if is_local:
-                                    symbol = self.getSymbol('local', token.getValue(), current_context)
-                                    if not symbol:
-                                        print(self.printSemanticError(token.current_line, "Local identifier not found  ",token.getValue()))
-                                elif is_global:
-                                    symbol = self.getSymbol('global', token.getValue())
-                                    if not symbol:
-                                        print(self.printSemanticError(token.current_line, "Global identifier not found  ",token.getValue()))
-                                if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
-                                    previous_symbol = symbol
-                            else:
+                            if is_local:
                                 symbol = self.getSymbol('local', token.getValue(), current_context)
                                 if not symbol:
-                                    symbol = self.getSymbol('global', token.getValue())
-                                    if not symbol:
-                                        if token.getValue() in self.functions_table:
-                                            symbol = self.functions_table[token.getValue()]
-                                        if not symbol:
-                                            print(self.printSemanticError(token.current_line, "An identifier must be initialized before use ",token.getValue()))
-                                        if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
-                                            previous_symbol = symbol
-                            if has_arithmetic:
-                                if  previous_symbol != '' and symbol is not None and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
-                                    print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
-                                has_arithmetic = False
+                                    print(self.printSemanticError(token.current_line, "Local identifier not found  ",token.getValue()))
+                            elif is_global:
+                                symbol = self.getSymbol('global', token.getValue())
+                                if not symbol:
+                                    print(self.printSemanticError(token.current_line, "Global identifier not found  ",token.getValue()))
+                            is_local = is_global = False
+
+                            if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
+                                previous_symbol = symbol
+                            
+                        else:
+                            symbol = self.getSymbol('local', token.getValue(), current_context)
+                            if not symbol:
+                                symbol = self.getSymbol('global', token.getValue())
+                                if not symbol:
+                                    if token.getValue() in self.functions_table:
+                                        symbol = self.functions_table[token.getValue()]
+                                    if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or symbol is not None and previous_symbol == '':
+                                        previous_symbol = symbol
+                        if has_arithmetic:
+                            if  previous_symbol != '' and symbol is not None and previous_symbol.getAssignmentType() != symbol.getAssignmentType():
+                                print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
+                            has_arithmetic = False
                                 
                     elif token.getType() == 'ART':
                         if self.isArithmetic(token.getValue()):
                             has_arithmetic = True
+                            is_local = is_global = False
                 
         self.current_token_value = 0
 
@@ -475,11 +549,10 @@ class Semantic:
         tokens2 = tokens.copy()
         current_context = tokens2.pop(0)
         values = list(map(self.getTokenValue,tokens2))
-        print(values)
         is_local_global = False
         is_local = False
         is_global = False
-        if tokens2[0].getValue() == 'local' or 'global':
+        if tokens2[0].getValue() == 'local' or tokens2[0].getValue() == 'global':
             is_local_global = True
             globloc = tokens2.pop(0)
             values.pop(0)
@@ -593,8 +666,10 @@ class Semantic:
         has_local_global = False
         function_name = tokens2.pop(0)
         values = list(map(self.getTokenValue, tokens2))
+        has_rel = False
         token_left = True
         first_token = ''
+        isFunction = False
 
         while self.hasNextToken(tokens2):
             token = self.nextToken(tokens2)
@@ -604,8 +679,16 @@ class Semantic:
                     is_local = True if token.getValue() == 'local' else False
                     is_global = True if token.getValue() == 'global' else False
                     has_local_global = True
+            
+            if token.getType() == 'REL':
+                has_rel = True
+
         
             if token.getType() == 'IDE':
+                if has_rel:
+                    has_rel = False
+                    if token.getValue() in self.functions_table:
+                        isFunction = True
                 if token_left:
                     token_left = False
                     symblocal = self.getSymbol('local', token.getValue(), function_name)
@@ -617,8 +700,11 @@ class Semantic:
                         else:
                             symbol1 = symbglobal
                     else:
-                        symbol1 = symblocal if symbglobal is not None else symbglobal
+                        symbol1 = symblocal if symblocal is not None else symbglobal
                     first_token = symbol1
+                    if first_token is None:
+                        print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                        return
                     
                 else:
                     symblocal = self.getSymbol('local', token.getValue(), function_name)
@@ -631,14 +717,21 @@ class Semantic:
                             symbol1 = symbglobal
                     else:
                         symbol1 = symblocal if symblocal is not None else symbglobal
-                
-                if symbol1 is None:
-                    print(self.printSemanticError(token.current_line, "An identifier must be initialized before assign to a variable", token.getValue()))
-                    return
-                if symbol1.getValue() == '':
-                    print(self.printSemanticError(token.current_line, "An identifier must be initialized before assign to a variable", token.getValue()))
-                elif(symbol1.getTokenType()!= first_token.getTokenType() or (symbol1.getIsArray() != first_token.getIsArray() and ('[' not in values))):
-                    print(self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
+                        if not symbol1:
+                            symbol1 = self.functions_table[function_name]
+                    if symbol1 is None:
+                        if token.getType()!= 'NRO':
+                            print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                        return
+                    else:
+                        if(symbol1.getTokenType()!= first_token.getTokenType() or (symbol1.getIsArray() != first_token.getIsArray() and ('[' not in values))):
+                            if not (symbol1 is not None and symbol1.getIsProcedure()) and not isFunction:
+                                print(self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
+            elif token.getType() == 'NRO' or token.getType() == 'CAD':
+                token_type = ('real' if '.' in token.getValue() else 'int') if token.getType() == 'NRO' else 'string' 
+                if token_type != first_token.getTokenType():
+                    if not (symbol1 is not None and symbol1.getIsProcedure()):
+                        print(self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
             
     
     def notAllowBooleanAndStringIncrements(self, tokens):
@@ -705,35 +798,110 @@ class Semantic:
 
     def verifyIfCallingAProcedureInsteadOfAFunction(self, tokens):
         tokens2 = tokens.copy()
-        current_context = tokens2[0]
-        pre_variable = tokens2[1]
-        function_call_name = tokens[3]
-        quantity, types = self.getQuantityOfParametersAndTypes(tokens2[4:], current_context)
+        current_context = tokens2.pop(0)
+        declared_function = tokens2.pop(0)
+        has_rel = False
+        got_func_name = False
+        function_call_name = ''
+        function_params = []
+
+        while self.hasNextToken(tokens2):
+            token = self.nextToken(tokens2)
+            if token.getType() == 'REL':
+                has_rel = True
+            if token.getType() == 'IDE':
+                if has_rel:
+                    has_rel = False
+                    got_func_name = True
+                    function_call_name = token
+            if got_func_name:
+                function_params.append(token)
+        self.current_token_value = 0
+        function_params.pop(0)
+        quantity, types = self.getQuantityOfParametersAndTypes(function_params, current_context)
         for func in self.functions_table:
             function_parameter = self.functions_table[func].getParameters()
             func_param_size = len(function_parameter)
-            if func in function_call_name.getValue():
+            if function_call_name.getValue() in func :
                 if quantity == func_param_size:
                     if self.functions_table[func].getIsProcedure():
                         print(self.printSemanticError(function_call_name.current_line, "Procedures doesn't return a value ",function_call_name.getValue()))
 
     def verifyIfFunctionReturnIsEquivalent(self, tokens):
         tokens2 = tokens.copy()
-        current_context = tokens2[0]
-        pre_variable = tokens2[1]
-        symbol = self.getSymbol('local', pre_variable.getValue(), current_context)
-        if symbol:
-            function_call_name = tokens[3]
-            quantity, types = self.getQuantityOfParametersAndTypes(tokens2[4:], current_context)
-            for func in self.functions_table:
-                function_parameter = self.functions_table[func].getParameters()
-                func_param_size = len(function_parameter)
-                if func in function_call_name.getValue():
-                    if quantity == func_param_size:
-                        if self.functions_table[func].getAssignmentType().lower() != symbol.getTokenType():
-                            print(self.printSemanticError(function_call_name.current_line, "Function return's type doesn't match with variable type ",function_call_name.getValue()))
-        else:
-            print(self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
+        is_local = False
+        is_global = False
+        current_context = tokens2.pop(0)
+        declared_function = tokens2.pop(0)
+        is_first_variable = True
+        is_relational = False
+        time_for_params = False
+        pre_variable = ''
+        function_call_name = ''
+        function_params = []
+        
+
+        while self.hasNextToken(tokens2):
+            token = self.nextToken(tokens2)
+            if token.getType() == "PRE":
+                if token.getValue() == 'local' or token.getValue() == 'global':
+                    if token.getValue() == 'local':
+                        is_local = True
+                    else:
+                        is_global = True
+
+            if token.getType() == "REL":
+                is_relational = True
+                
+            if token.getType() == "IDE":
+                if is_local or is_global:
+                    if is_first_variable:
+                        is_first_variable = False
+                        pre_variable = token
+                        if is_local:
+                            symbol = self.getSymbol('local', pre_variable.getValue(), current_context)
+                            if not symbol:
+                                print(self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
+                                return
+                        else:
+                            symbol = self.getSymbol('global', pre_variable.getValue())
+                            if not symbol:
+                                print(self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
+                                return
+                else:
+                    if is_first_variable:
+                        is_first_variable = False
+                        pre_variable = token
+                        symbol = self.getSymbol('local', pre_variable.getValue(), current_context)
+                        if not symbol:
+                            symbol = self.getSymbol('global', pre_variable.getValue())
+                            if not symbol:
+                                print(self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
+                                return
+                if is_relational:
+                    is_relational = False
+                    function_call_name = token
+                    time_for_params = True
+                if time_for_params:
+                    function_params.append(token)
+                if token.getType() == "DEL":
+                    if time_for_params:
+                        function_params.append(token)
+        
+        self.current_token_value = 0
+        function_params.pop(0)
+
+        quantity, types = self.getQuantityOfParametersAndTypes(function_params, current_context)
+        for func in self.functions_table:
+            function_parameter = self.functions_table[func].getParameters()
+            func_param_size = len(function_parameter)
+            if function_call_name.getValue() in func :
+                if quantity == func_param_size:
+                    if self.functions_table[func].getAssignmentType().lower() != symbol.getTokenType():
+                        print(self.printSemanticError(function_call_name.current_line, "Function return's type doesn't match with variable type ",function_call_name.getValue()))
+    
+
+        
 
     
     def verifyFuncionReturnType(self, tokens):

@@ -1,42 +1,22 @@
-var{
-  int twitch = 20;
-}
 
-procedure one(){
-  print("kkk");
-  
-}
 
-procedure testeteste(){
-  print("e ai?");
-}
-
-function real retorna(){
-  return 10.2;
-}
-
-function int retorna(int a){
+function int teste(real a,int a){
+  print("oi");
   return 10;
 }
 
+
 procedure start ()
 {
-  
   var{
-    int oi[2], k = 20, abcd;
-    real ooo = 20.1;
-    string abc = "ab";
-  }
-
-  const{
     int a = 10;
+    real b = 20.1;
   }
 
+local.a = teste(local.b,1.1);
 
-a = 20;
 
-  
-  
+
 
     
 }
