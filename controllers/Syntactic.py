@@ -1928,8 +1928,14 @@ class Syntactic:
                          self.token_list.append(self.printError(self.token.current_line, [";"], self.token.getValue())) 
                 else:
                      self.token_list.append(self.printError(self.token.current_line, self.firstSet["VALUE"], self.token.getValue()))
+
+            elif self.token.getValue() == '++' or self.token.getValue() == '--':
+                self.semantic.analyze(self.symbol_table, ['notAllowBooleanAndStringIncrements'], list(chain([self.current_method], self.token_value_list)))
+                self.getNextToken()
             else: 
                 self.token_list.append(self.printError(self.token.current_line, ["="], self.token.getValue()))
+
+
         else:
              self.token_list.append(self.printError(self.token.current_line, self.firstSet["ATRIBUICAO"], self.token.getValue()))
 

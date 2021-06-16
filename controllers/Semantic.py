@@ -738,16 +738,42 @@ class Semantic:
         tokens2 = tokens.copy()
         function_name = tokens2.pop(0)
         values = list(map(self.getTokenValue, tokens2))
+        #print(values)
+        is_local = is_global = False
+        is_art = False
+
+        while self.hasNextToken(tokens2):
+            token = self.nextToken(tokens2)
+            if token.getType() == 'PRE':
+                is_local = True if token.getValue() == 'local' else False
+                is_global = True if token.getValue() == 'global' else False
+
+            if token.getType() == 'ART':
+                if token.getValue() == '++' or token.getValue() == '--':
+                    is_art = True
+
+            if token.getType() == 'IDE':
+                if is_local:
+                    symbol = self.getSymbol('local', token.getValue(), function_name)
+                elif is_global:
+                    symbol = self.getSymbol('global', token.getValue())
+                else:
+                    symbol = self.getSymbol('local', token.getValue(), function_name)
+                    if symbol is None:
+                        symbol = self.getSymbol('global', token.getValue())
+                    if(not symbol): return
+            if is_art:
+                is_art = False
+                if(symbol.getAssignmentType()=='BOOLEAN' or symbol.getAssignmentType()=='STRING'):
+                    print(self.printSemanticError(token.current_line, "You cannot increment/decrement boolean or string variables ", token.getValue()))
+        self.current_token_value = 0
+
+            
         
-        index  = values.index('++') if('++' in values) else values.index('--')
-        token1, token2 = tokens2[index-1], tokens2[index+1]
-        identifier = token1 if(token1.getType()=='IDE') else token2
         
-        symbol = self.getSymbol('local', identifier.getValue(), function_name)
         
-        if(not symbol): return
-        if(symbol.getAssignmentType()=='BOOLEAN' or symbol.getAssignmentType()=='STRING'):
-            print(self.printSemanticError(identifier.current_line, "You cannot increment/decrement boolean or string variables ", identifier.getValue()))
+        
+
     
 
     def verifyIfGlobalVariableAlreadyExists(self, tokens):

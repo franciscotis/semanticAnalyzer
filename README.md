@@ -80,7 +80,6 @@ CAD  - Cadeia de Caracteres
 ```
 
 [x] Função ou procedure tem que ser declarada antes de a utilizar. #TODO - VERIFICAR SE USA O PARÂMETRO É UM VETOR
-
 [x] A função tem que ser chamada com a quantidade de parâmetros e tipos corretos. (global e local ok ) #TODO - VERIFICAR SE O DADO NÃO É UM TYPEDEF 
 [x] O retorno da função tem que ser igual ao valor retornado
 [x] Não é possível fazer overloading do procedure start
@@ -101,12 +100,12 @@ CAD  - Cadeia de Caracteres
 
 ```
 
-[ ] Operações com valores de tipos diferentes não podem ser realizadas, pois a linguagem não permite a conversão de tipos. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
-[x] Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro). #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL/ FAZER CHECAGEM COM TYPEDEF
+[x] Operações com valores de tipos diferentes não podem ser realizadas, pois a linguagem não permite a conversão de tipos. (global e local ok)
+[x] Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro). (global e local ok)  #TODO -  FAZER CHECAGEM COM TYPEDEF
 [x] Verificar se quando chama uma função na operação, esta não é um procedimento.
 [x] Não é possível realizar a comparação de valores de tipos diferentes. #TODO - FAZER CHECAGEM COM O TYPEDEF
 [x] Não é possível fazer incremento em string e em booleano. #TODO - FAZER CHECAGEM COM O TYPEDEF
-[x] Itens de condição em if e while tem que ser booleanos. #verificar se usa o global ou local
+[x] Itens de condição em if e while tem que ser booleanos. (global e local ok)
 [ ] Dentro do print pode ser passado como parâmetro tudo que retorna valor, incluindo expressões no geral. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
 
 

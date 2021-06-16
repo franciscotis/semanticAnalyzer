@@ -1,4 +1,6 @@
-
+var{
+  int a = 20;
+}
 
 function int teste(real a,int a){
   print("oi");
@@ -11,9 +13,12 @@ procedure start ()
   var{
     int a = 10;
     real b = 20.1;
+    boolean teste = true;
   }
 
-local.a = teste(local.b,1.1);
+  if(local.a == 20){
+    print("oi");
+  }
 
 
 
