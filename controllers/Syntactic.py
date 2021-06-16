@@ -32,6 +32,7 @@ class Syntactic:
         self.token_value_list = []
         self.typedef_list = {}
         self.semantic = semantic
+        self.current_array = ''
 
     def run(self):
         self.getNextToken()
@@ -451,6 +452,7 @@ class Syntactic:
                 self.getError(self.followSet["VARDECLARATION"])
         elif self.token.getValue() == '[':
             self.current_symbol.setIsArray(True)
+            self.current_array = self.current_symbol
             self.getNextToken()
             if(self.token.getValue() in self.firstSet["ARITMETICOP"] or self.token.getType() in self.firstSet["ARITMETICOP"]):
                 self.aritimeticOp()
@@ -484,9 +486,11 @@ class Syntactic:
             else:
                 self.token_list.append(self.printError(self.token.current_line, self.firstSet["INICIO"], self.token.getValue()))
         elif self.token.getValue() =='=':
+            self.token_value_list = []
             self.getNextToken()
             if self.token.getValue() in self.firstSet["INITVETOR"]:
                 self.initVetor()
+                self.semantic.analyze(self.symbol_table, ['verifyIfVetorAssignmentTypeIsValid'], list(chain([self.current_method], [self.current_array], self.token_value_list)), self.functions_table)
             else:
                 self.token_list.append(self.printError(self.token.current_line, self.firstSet["INITVETOR"], self.token.getValue()))
         elif self.token.getValue() == ',':

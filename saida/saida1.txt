@@ -37,6 +37,19 @@
 14 IDE a
 14 REL =
 14 NRO 10
+14 DEL ,
+14 IDE arg
+14 DEL [
+14 NRO 2
+14 DEL ]
+14 REL =
+14 DEL [
+14 NRO 1
+14 DEL ,
+14 NRO 2
+14 DEL ,
+14 IDE a
+14 DEL ]
 14 DEL ;
 15 PRE real
 15 IDE b
@@ -51,15 +64,11 @@
 17 DEL }
 19 PRE if
 19 DEL (
-19 PRE local
-19 DEL .
-19 IDE a
-19 REL ==
-19 NRO 20
+19 PRE true
 19 DEL )
+ERROR on line 19: Expecting [!=, &&, ||, ==, =, <, >, ==, <=, >=]. Got: ')'
+19 PRE then
 19 DEL {
-ERROR on line 19: Expecting [then]. Got: '{'
-ERROR on line 19: Expecting [}]. Got: '{'
 20 PRE print
 20 DEL (
 20 CAD "oi"

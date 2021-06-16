@@ -61,7 +61,7 @@ CAD  - Cadeia de Caracteres
 [x] Não é possível declarar uma variável local se outra com o mesmo nome já foi declara anteriormente. 
 [x] É possível declarar uma variável local com o mesmo nome de uma variável global. 
 [x] Não é possível atribuir um valor a uma constante, após a sua declaração. (local/global ok)
-[ ] Não é possível declarar tipos diferentes de valores em um array (e.g. int a[] = {1,2,3,"abc",4}). #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
+[x] Não é possível declarar tipos diferentes de valores em um array (e.g. int a[] = {1,2,3,"abc",4}). #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
 [ ] É possível fazer a concatenação de duas strings a partir do operador '+'. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
 
 ```

@@ -16,6 +16,7 @@ class Semantic:
         if typedef_list is not None:
             self.typedef_list = typedef_list
         for rule in rules:
+            self.current_token_value = 0
             if rule == 'structExtends':
                 self.structExtends(tokens_list)
             elif rule == 'methodDeclaredFirst':
@@ -54,6 +55,8 @@ class Semantic:
                 self.verifyIfFunctionReturnIsEquivalent(tokens_list)
             elif rule == 'verifyFuncionReturnType':
                 self.verifyFuncionReturnType(tokens_list)
+            elif rule == 'verifyIfVetorAssignmentTypeIsValid':
+                self.verifyIfVetorAssignmentTypeIsValid(tokens_list)
 
 
     def printSemanticError(self, lineNumber, errorType, got):
@@ -491,17 +494,18 @@ class Semantic:
 
     # 8 - Itens de condição em if e while tem que ser booleanos.
     def verifyIfBooleanExpressionIsCorrect(self, tokens):
-        if type(tokens[0]) == str:
-            current_context = tokens[0]
-        values = list(map(self.getTokenValue,tokens[1:]))
-        tokens = tokens[1:]
+        tokens2 = tokens.copy()
+        if type(tokens2[0]) == str:
+            current_context = tokens2[0]
+        values = list(map(self.getTokenValue,tokens2[1:]))
+        tokens2 = tokens2[1:]
         expressao_valida = False
         has_boolean = False
-        last_token = tokens[1]
+        last_token = tokens2[1]
         expressions_list = []
-        while self.hasNextToken(tokens):
-            token = self.nextToken(tokens)
-           # print(token.getType())
+        while self.hasNextToken(tokens2):
+            token = self.nextToken(tokens2)
+            
             last_token = token
             if token.getType() == 'IDE' or token.getType() == 'PRE':
                 symbol = self.getSymbol('local', token.getValue(), current_context)
@@ -523,8 +527,8 @@ class Semantic:
                     expressao_valida = False
             elif token.getType() == 'DEL':
                 if token.getValue() == ')':
-                    if self.peekNextToken(tokens) is not None:
-                        if (self.peekNextToken(tokens).getValue() != ')' and not self.isRelational(self.peekNextToken(tokens).getValue()) and not self.isArithmetic(self.peekNextToken(tokens).getValue())):
+                    if self.peekNextToken(tokens2) is not None:
+                        if (self.peekNextToken(tokens2).getValue() != ')' and not self.isRelational(self.peekNextToken(tokens2).getValue()) and not self.isArithmetic(self.peekNextToken(tokens2).getValue())):
                             expressions_list.append(has_boolean or expressao_valida)
                             has_boolean = False
                             expressao_valida = False
@@ -655,6 +659,7 @@ class Semantic:
                     current_type = '' 
             elif token.getValue() == ')':
                 expressions_list.append(valor_verdadeiro)
+        self.current_token_value = 0
         if False in expressions_list:
             print(self.printSemanticError(last_token.current_line, "You can't compare two different kinds of variables",self.getExpression(values)))
 
@@ -732,6 +737,7 @@ class Semantic:
                 if token_type != first_token.getTokenType():
                     if not (symbol1 is not None and symbol1.getIsProcedure()):
                         print(self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
+        self.current_token_value = 0
             
     
     def notAllowBooleanAndStringIncrements(self, tokens):
@@ -926,10 +932,6 @@ class Semantic:
                     if self.functions_table[func].getAssignmentType().lower() != symbol.getTokenType():
                         print(self.printSemanticError(function_call_name.current_line, "Function return's type doesn't match with variable type ",function_call_name.getValue()))
     
-
-        
-
-    
     def verifyFuncionReturnType(self, tokens):
         function_name = tokens.pop(0)
         tokens2 = tokens[0:-1]
@@ -956,3 +958,51 @@ class Semantic:
             if(self.functions_table.get(function_name).getAssignmentType() == function_identifier.getAssignmentType()): return
             print(self.printSemanticError(tokens2[0].current_line, "Function's return must be the same declared type", tokens2[0].getValue()+"()"))
         
+
+    def verifyIfVetorAssignmentTypeIsValid(self, tokens):
+        tokens2 = tokens.copy()
+        function_name = tokens2.pop(0)
+        current_symbol = tokens2.pop(0)
+        values = list(map(self.getTokenValue, tokens2))
+        tipo = ''
+        is_local = is_global = False
+        symbol = ''
+        while self.hasNextToken(tokens2):
+            token = self.nextToken(tokens2)
+            if token.getValue() == ']':
+                return
+            if token.getType() == 'PRE':
+                is_local = True if token.getValue() == 'local' else False
+                is_global = True if token.getValue() == 'global' else False
+
+            if token.getType() == 'IDE':
+                if is_local:
+                    is_local = False
+                    symbol = self.getSymbol('local', token.getValue(), function_name)
+                elif is_global:
+                    is_global = False
+                    symbol = self.getSymbol('global', token.getValue())
+                else:
+                    symbol = self.getSymbol('local', token.getValue(), function_name)
+                    if symbol is None:
+                        symbol = self.getSymbol('global', token.getValue())
+
+                if symbol is None or symbol == '':
+                    print(self.printSemanticError(token.current_line, "Identifier not found", token.getValue()))
+                else:
+                    tipo =  symbol.getTokenType()
+            
+
+
+            if token.getType() == 'NRO':
+                tipo = 'real' if '.' in token.getValue() else 'int'
+            elif token.getType() == 'CAD':
+                tipo = 'string'
+            elif token.getType() == 'BOOLEAN':
+                tipo = 'boolean'
+            if tipo!= '' and tipo != current_symbol.getTokenType():
+                print(self.printSemanticError(tokens2[0].current_line, f"Array declared as {current_symbol.getTokenType()} and you are adding a {tipo} value ", current_symbol.getIdentifier()))
+                return
+
+        self.current_token_value = 0
+
