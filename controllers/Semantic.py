@@ -221,11 +221,16 @@ class Semantic:
         first_local = False
         index_of_array_name = (values.index("["))-1
         tkns = tokens2[index_of_array_name:]
+        is_struct = False
+        struct_type = ''
+        got_del = False
         while self.hasNextToken(tkns):
             token = self.nextToken(tkns)
-            if token.getValue() == '.' and not first_local:
-                local_global = True
-                first_local = True
+            if token.getValue() == '.':
+                got_del = True    
+                if tkns[tkns.index(token)-1].getValue() == 'local' or tkns[tkns.index(token)-1].getValue() == 'global' and not first_local:
+                    local_global = True
+                    first_local = True
             else:
                 if local_global:
                     local_global = False
@@ -239,6 +244,7 @@ class Semantic:
                     if token.getType() == "CAD":
                         print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
                         return
+
                     if token.getType() == 'ART':
                         if token.getValue() == '/':
                             print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
@@ -248,6 +254,8 @@ class Semantic:
                             is_local = True
                         elif token.getValue() == 'global':
                             is_global = True
+                        else:
+                             print(self.printSemanticError(token.current_line, "Invalid token",self.getExpression(values)))
                     if token.getType() == 'IDE':
                         if is_local or is_global:
                             if is_local:
@@ -265,20 +273,38 @@ class Semantic:
                                     if symbol.getAssignmentType() !='INT':
                                         print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))                                    
                         else:
-                            symbol = self.getSymbol('global', token.getValue())
-                            if not symbol:
-                                symbol = self.getSymbol('local', token.getValue(), current_context)
+                            declared_token = self.getSymbol('local', token.getValue(), current_context)
+                            if declared_token is not None:
+                                if declared_token.getTokenType() in self.symbol_table['local'] and self.peekNextToken(tokens2).getValue() == '.':
+                                    is_struct = True
+                                    struct_type = declared_token.getTokenType()
+                            if is_struct and got_del:
+                                is_struct = False
+                                got_del = False
+                                symbol = self.getSymbol('local', token.getValue(), struct_type)
                                 if not symbol:
-                                    symbol = self.functions_table[token.getValue()]
-                            if symbol is not None:
-                                if symbol.getAssignmentType() !='INT':
-                                    if symbol.getIsArray():
-                                        if symbol.getTokenType() != 'int':
-                                            print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
-                                    else:
-                                        print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                                    print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
                                     return
-                            
+                                else:
+                                    if (symbol.getAssignmentType() != '' and symbol.getAssignmentType() != 'INT') or symbol.getTokenType() != 'int':
+                                        print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                                        return
+                            else:
+                                if self.peekNextToken(tokens2).getValue() == ']':
+                                    symbol = self.getSymbol('global', token.getValue())
+                                    if not symbol:
+                                        symbol = self.getSymbol('local', token.getValue(), current_context)
+                                        if not symbol:
+                                            symbol = self.functions_table[token.getValue()]
+                                    if symbol is not None:
+                                        if symbol.getAssignmentType() !='INT':
+                                            if symbol.getIsArray():
+                                                if symbol.getTokenType() != 'int':
+                                                    print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                                            else:
+                                                print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                                                return
+                    
         self.current_token_value = 0
         
 
@@ -744,7 +770,7 @@ class Semantic:
                     else:
                         
                         if(symbol1.getTokenType()!= first_token.getTokenType() or (symbol1.getIsArray() != first_token.getIsArray() and ('[' not in values))):
-                            if not (symbol1 is not None and symbol1.getIsProcedure()) and not isFunction:
+                            if not (symbol1 is not None and symbol1.getIsProcedure()) and not isFunction and self.peekNextToken(tokens2).getValue()!= ".":
                                 print(self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
             elif token.getType() == 'NRO' or token.getType() == 'CAD':
                 token_type = ('real' if '.' in token.getValue() else 'int') if token.getType() == 'NRO' else 'string' 
@@ -789,10 +815,6 @@ class Semantic:
 
             
         
-        
-        
-        
-
     
 
     def verifyIfGlobalVariableAlreadyExists(self, tokens):

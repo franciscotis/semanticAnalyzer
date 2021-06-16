@@ -1197,6 +1197,7 @@ class Syntactic:
         
     def firstStructVar(self):
         if(self.dataType()):
+            self.current_variable_type = self.token.getValue()
             self.getNextToken()
             if self.token.getType() == 'IDE':
                 self.structVarId()
@@ -1209,6 +1210,10 @@ class Syntactic:
 
     def structVarId(self):
         if(self.token.getType()=="IDE"):
+            symbol = Symbol(self.token.getValue(), 'var', self.current_variable_type)
+            self.symbol_table["local"][self.current_struct].append(symbol)
+            self.current_symbol = symbol
+            symbol.setScope('local')
             self.getNextToken()
             if self.token.getValue() in self.firstSet["STRUCTVAREXP"]:
                 self.structVarExp()
@@ -1280,6 +1285,7 @@ class Syntactic:
 
     def proxStructVar(self):
         if(self.dataType()):
+            self.current_variable_type = self.token.getValue()
             self.getNextToken()
             if self.token.getType() in self.firstSet["STRUCTVARID"]:
                 self.structVarId()
