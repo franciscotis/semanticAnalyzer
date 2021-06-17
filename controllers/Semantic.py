@@ -523,6 +523,11 @@ class Semantic:
                         if dot:
                             dot = False
                             struct_variable = self.getSymbol('local', struct_val.getValue(), current_context)
+                            if not struct_variable:
+                                struct_variable = self.getSymbol('global', struct_val.getValue())
+                                if not struct_variable:
+                                    print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                                    return
                             symbol = self.getSymbol('local', token.getValue(), struct_variable.getTokenType())
                         else:
                             if self.peekNextToken(tokens).getValue() != '.':
@@ -578,6 +583,11 @@ class Semantic:
                 if dot:
                     if struct_name!= '':
                         struct_symbol = self.getSymbol('local', struct_name, current_context)
+                        if not struct_symbol:
+                            struct_symbol = self.getSymbol('global', struct_name)
+                            if not struct_symbol:
+                                print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                                return                        
                         symbol = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
                 else:
                     if self.peekNextToken(tokens2).getValue() != '.':
@@ -680,6 +690,11 @@ class Semantic:
                 if dot:
                     dot = False
                     pre_symbol = self.getSymbol('local', struct_value, current_context)
+                    if not pre_symbol:
+                        pre_symbol = self.getSymbol('global', struct_value)
+                        if not pre_symbol:
+                            print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                            return            
                     symbol = self.getSymbol('local', token.getValue(), pre_symbol.getTokenType())
                 else:
                     if self.peekNextToken(tokens).getValue()!='.':
@@ -777,6 +792,11 @@ class Semantic:
                     if dot:
                         dot = False
                         struct_symbol = self.getSymbol('local', struct_value, function_name)
+                        if not struct_symbol:
+                            struct_symbol = self.getSymbol('global', struct_value)
+                            if not struct_symbol:
+                                print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                                return            
                         symblocal = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
                     else:
                         symblocal = self.getSymbol('local', token.getValue(), function_name)
@@ -798,6 +818,14 @@ class Semantic:
                     if dot:
                         dot = False
                         struct_symbol = self.getSymbol('local', struct_value, function_name)
+                        if not struct_symbol:
+                            struct_symbol = self.getSymbol('global', struct_value)
+                            if not struct_symbol:
+                                print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                                return                   
+                        else:
+                            print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                            return
                         symblocal = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
                     else:                       
                         symblocal = self.getSymbol('local', token.getValue(), function_name)
@@ -856,6 +884,11 @@ class Semantic:
             if token.getType() == 'IDE':
                 if dot:
                     struct_symbol = self.getSymbol('local', struct_value, function_name)
+                    if not struct_symbol:
+                        struct_symbol = self.getSymbol('global', struct_value)
+                        if not struct_symbol:
+                            print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                            return            
                     symbol = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
                 else:
                     if is_local:
@@ -1039,6 +1072,11 @@ class Semantic:
                         if dot:
                             dot = False
                             struct_symbol = self.getSymbol('local', struct_value, current_context)
+                            if not struct_symbol:
+                                struct_symbol = self.getSymbol('global', struct_value)
+                                if not struct_symbol:
+                                    print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                                    return            
                             symbol = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
                         else:
                             pre_variable = token
