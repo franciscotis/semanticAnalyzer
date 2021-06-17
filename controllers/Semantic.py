@@ -1116,32 +1116,42 @@ class Semantic:
     def verifyFuncionReturnType(self, tokens):
         function_name = tokens.pop(0)
         tokens2 = tokens[0:-1]
-
+        symbol = None
+        
         if(len(tokens2)==0): return
 
         if(len(tokens2)==1):
             token = tokens2[0]
             if(token.getType()=='IDE'):
-                symbol = self.getSymbol('local', token.getValue(), function_name)
+                parameters = self.functions_table[function_name].getParameters()
+                if(token.getValue() in [param.getIdentifier() for param in parameters]):
+                    get_symbol = lambda param: (token.getValue()==param.getIdentifier())
+                    symbol = list(filter(get_symbol, parameters))[0]
+
+                elif(self.getSymbol('local', token.getValue(), function_name)):
+                    symbol = self.getSymbol('local', token.getValue(), function_name)
+                
                 if(not symbol): return
-                if(self.functions_table.get(function_name).getAssignmentType() == symbol.getAssignmentType()): return
+
+                if(self.functions_table.get(function_name).getAssignmentType() == symbol.getTokenType().upper()): 
+                    return
 
             elif(self.functions_table.get(function_name).getAssignmentType() == self.getDataType(token)): return
-            if token.getValue() in self.functions_table:
-                print(self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()))
+            print(self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()))
 
-        if(tokens2[0].getType()=='IDE'):
-            if(not self.functions_table.get(tokens2[0].getValue())):
+        elif(tokens2[0].getType()=='IDE'):
+            token = tokens2[0]
+            if(not self.functions_table.get(token.getValue())):
                 symbol = self.getSymbol('local', token.getValue(), function_name)
                 if not symbol:
                     symbol = self.getSymbol('global', token.getValue())
                     if not symbol:
-                        print(self.printSemanticError(tokens2[0].current_line, "A function should be declared before call", tokens2[0].getValue()+"()"))
+                        print(self.printSemanticError(token.current_line, "A function should be declared before call", token.getValue()+"()"))
                 return
         
             function_identifier = self.functions_table.get(tokens2[0].getValue())
             if(self.functions_table.get(function_name).getAssignmentType() == function_identifier.getAssignmentType()): return
-            print(self.printSemanticError(tokens2[0].current_line, "Function's return must be the same declared type", tokens2[0].getValue()+"()"))
+            print(self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()+"()"))
         
 
     def verifyIfVetorAssignmentTypeIsValid(self, tokens):
