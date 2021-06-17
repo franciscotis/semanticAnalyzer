@@ -1826,6 +1826,8 @@ class Syntactic:
         elif self.token.getValue() in self.firstSet["READ"]:
             self.read()
         elif self.token.getValue() in self.firstSet["INCREMENTOP"]:
+            self.token_value_list = []
+            self.token_value_list.append(self.token)
             self.incrementOp()
             if self.token.getValue() ==';':
                 self.getNextToken()

@@ -4,14 +4,8 @@ struct Pessoa
 		string nome;
 		int idade;
 		real salario;
-        boolean boleano;
 	}
 
-
-}
-
-procedure func(int a, int b){
-    print("oi");
 }
 
 
@@ -21,13 +15,13 @@ procedure start ()
 {
     var{
         int teste = 20, aiai[20];
-        real salada = 20.1;
+        string texto = "texto";
         Pessoa pess;
-        boolean bol;
         
     }
+    typedef string str;
+    aiai[pess.idade] = 20;
 
-    ++bol;
-
+    texto++;
 
 }

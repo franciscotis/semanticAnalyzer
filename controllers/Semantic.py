@@ -814,12 +814,19 @@ class Semantic:
         tokens2 = tokens.copy()
         function_name = tokens2.pop(0)
         values = list(map(self.getTokenValue, tokens2))
-        #print(values)
+        print(values)
         is_local = is_global = False
         is_art = False
+        struct_value = ''
+        dot = False
+        symbol = ''
 
         while self.hasNextToken(tokens2):
             token = self.nextToken(tokens2)
+            if token.getValue() == '.' and tokens2[tokens2.index(token)-1].getValue() != 'local' and tokens2[tokens2.index(token)-1].getValue() != 'global':
+                dot = True
+                struct_value = tokens2[tokens2.index(token)-1].getValue()
+
             if token.getType() == 'PRE':
                 is_local = True if token.getValue() == 'local' else False
                 is_global = True if token.getValue() == 'global' else False
@@ -829,19 +836,24 @@ class Semantic:
                     is_art = True
 
             if token.getType() == 'IDE':
-                if is_local:
-                    symbol = self.getSymbol('local', token.getValue(), function_name)
-                elif is_global:
-                    symbol = self.getSymbol('global', token.getValue())
+                if dot:
+                    struct_symbol = self.getSymbol('local', struct_value, function_name)
+                    symbol = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
                 else:
-                    symbol = self.getSymbol('local', token.getValue(), function_name)
-                    if symbol is None:
+                    if is_local:
+                        symbol = self.getSymbol('local', token.getValue(), function_name)
+                    elif is_global:
                         symbol = self.getSymbol('global', token.getValue())
-                    if(not symbol): return
+                    else:
+                        symbol = self.getSymbol('local', token.getValue(), function_name)
+                        if symbol is None:
+                            symbol = self.getSymbol('global', token.getValue())
+                        if(not symbol): return
             if is_art:
                 is_art = False
-                if(symbol.getAssignmentType()=='BOOLEAN' or symbol.getAssignmentType()=='STRING'):
-                    print(self.printSemanticError(token.current_line, "You cannot increment/decrement boolean or string variables ", token.getValue()))
+                if symbol:
+                    if(symbol.getTokenType()=='boolean' or symbol.getTokenType()=='string'):
+                        print(self.printSemanticError(token.current_line, "You cannot increment/decrement boolean or string variables ", token.getValue()))
         self.current_token_value = 0
 
             
