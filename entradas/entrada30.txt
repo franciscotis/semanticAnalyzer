@@ -10,8 +10,17 @@ struct Pessoa
 
 }
 
+var{
+    string nome= "oi";
+}
+
+
 procedure func(int a, int b){
     print("oi");
+}
+
+function int aiai(){
+    return 10;
 }
 
 
@@ -22,13 +31,14 @@ procedure func(int a, int b){
 procedure start ()
 {
     var{
-        int teste = 20, aiai[20];
+        int teste = 20;
         real salada = 20.1;
         Pessoa pess;
         boolean bol;
         
     }
 
+    pess.idade = aiai(); 
 
 
 }

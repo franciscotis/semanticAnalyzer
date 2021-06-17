@@ -455,6 +455,11 @@ class Semantic:
             elif quantity > len(function_parameter):
                 quantity_parameters = 1
 
+        if found:
+            if self.functions_table[function_call_name].getIsProcedure():
+                print(self.printSemanticError(function_call_name.current_line, "Procedures doesn't return a value ",function_call_name.getValue()))
+
+
         if not found:
             if not same_type:
                 print(self.printSemanticError(function_call_name.current_line, "Function/procedure call with the wrong parameter type",function_call_name.getValue()))
@@ -481,6 +486,7 @@ class Semantic:
         is_global = False
         dot = False
         struct_val = ''
+        symbol = None
         while self.hasNextToken(tokens):
             token = self.nextToken(tokens)
             if token.getValue() == '.':
@@ -531,9 +537,6 @@ class Semantic:
                             print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
                         has_arithmetic = False
 
-                    if  previous_symbol != '' and symbol is not None and previous_symbol.getTokenType() != symbol.getTokenType():
-                            print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
-                            return
 
                     if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or (symbol is not None and previous_symbol == ''):
                             previous_symbol = symbol
@@ -657,7 +660,6 @@ class Semantic:
         if type(tokens[0]) == str:
             current_context = tokens[0]
         values = list(map(self.getTokenValue,tokens[1:]))
-        print(values)
         last_token = tokens[0]
         current_type = ''
         relational_value = False
@@ -739,9 +741,15 @@ class Semantic:
         token_left = True
         first_token = ''
         isFunction = False
+        dot = False
+        struct_value = ''
 
         while self.hasNextToken(tokens2):
             token = self.nextToken(tokens2)
+
+            if token.getValue() == '.' and tokens2[tokens2.index(token)-1].getValue() != 'local' and tokens2[tokens2.index(token)-1].getValue() != 'global':
+                dot = True
+                struct_value = tokens2[tokens2.index(token)-1].getValue()
 
             if token.getType() == 'PRE':
                 if token.getValue() == 'local' or 'global':
@@ -759,15 +767,20 @@ class Semantic:
                     return
 
             if token.getType() == 'IDE':
+                
                 if has_rel:
                     has_rel = False
                     if token.getValue() in self.functions_table:
                         isFunction = True
                 if token_left:
-                    
                     token_left = False
-                    symblocal = self.getSymbol('local', token.getValue(), function_name)
-                    symbglobal = self.getSymbol('global', token.getValue())
+                    if dot:
+                        dot = False
+                        struct_symbol = self.getSymbol('local', struct_value, function_name)
+                        symblocal = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
+                    else:
+                        symblocal = self.getSymbol('local', token.getValue(), function_name)
+                        symbglobal = self.getSymbol('global', token.getValue())
                     if has_local_global:
                         has_local_global = False
                         if is_local:
@@ -782,8 +795,13 @@ class Semantic:
                         return
                     
                 else:
-                    symblocal = self.getSymbol('local', token.getValue(), function_name)
-                    symbglobal = self.getSymbol('global', token.getValue())
+                    if dot:
+                        dot = False
+                        struct_symbol = self.getSymbol('local', struct_value, function_name)
+                        symblocal = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
+                    else:                       
+                        symblocal = self.getSymbol('local', token.getValue(), function_name)
+                        symbglobal = self.getSymbol('global', token.getValue())
                     if has_local_global:
                         has_local_global = False
                         if is_local:
@@ -793,7 +811,8 @@ class Semantic:
                     else:
                         symbol1 = symblocal if symblocal is not None else symbglobal
                         if not symbol1:
-                            symbol1 = self.functions_table[function_name]
+                            if token.getValue() in self.functions_table:
+                                symbol1 = self.functions_table[token.getValue()]
                     if symbol1 is None:
                         if token.getType()!= 'NRO':
                             print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
@@ -814,7 +833,6 @@ class Semantic:
         tokens2 = tokens.copy()
         function_name = tokens2.pop(0)
         values = list(map(self.getTokenValue, tokens2))
-        print(values)
         is_local = is_global = False
         is_art = False
         struct_value = ''
@@ -858,8 +876,6 @@ class Semantic:
 
             
         
-    
-
     def verifyIfGlobalVariableAlreadyExists(self, tokens):
         identifier, inside_method, inside_struct, current_method = tokens[0], tokens[1], tokens[2], tokens[3]
         encontrado = False
@@ -914,21 +930,52 @@ class Semantic:
         got_func_name = False
         function_call_name = ''
         function_params = []
+        dot = False
+        struct_value = ''
+        is_local = False
+        is_global = False
+        is_del = False
 
         while self.hasNextToken(tokens2):
             token = self.nextToken(tokens2)
+
+            if token.getValue() == '.' and tokens2[tokens2.index(token)-1].getValue() != 'local' and tokens2[tokens2.index(token)-1].getValue() != 'global':
+                dot = True
+                struct_value = tokens2[tokens2.index(token)-1].getValue()
+            
+            if token.getType() == 'DEL':
+                if token.getValue() == '(':
+                    is_del = True
+
             if token.getType() == 'REL':
                 has_rel = True
+
+            if token.getType() == 'PRE':
+                if token.getValue() == 'local' or token.getValue() == 'global':
+                    is_local = True if token.getValue() == 'local' else False
+                    is_global = True if token.getValue() == 'global' else False
+
             if token.getType() == 'IDE':
                 if has_rel:
                     has_rel = False
                     got_func_name = True
                     function_call_name = token
-            if got_func_name:
-                function_params.append(token)
+                if is_del:
+                    if self.peekNextToken(tokens2).getValue() != ".":
+                        if dot:
+                            dot = False
+                            function_params.append(['struct', token, struct_value])
+                        elif is_local:
+                            function_params.append(['local',token])
+                        elif is_global:
+                            function_params.append(['global',token])
+                        else:
+                            function_params.append(['',token])
+                    
+                    if token.getType() == 'NRO' or token.getType() =='CAD':
+                        function_params.append(['',token])
         self.current_token_value = 0
-        function_params.pop(0)
-        quantity, types = self.getQuantityOfParametersAndTypes(function_params, current_context)
+        quantity, types = self.getQuantityOfParametersAndTypes2(function_params, current_context)
         for func in self.functions_table:
             function_parameter = self.functions_table[func].getParameters()
             func_param_size = len(function_parameter)
