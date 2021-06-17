@@ -559,7 +559,6 @@ class Semantic:
         if type(tokens2[0]) == str:
             current_context = tokens2[0]
         values = list(map(self.getTokenValue,tokens2[1:]))
-        print(values)
         tokens2 = tokens2[1:]
         expressao_valida = False
         has_boolean = False
@@ -618,11 +617,6 @@ class Semantic:
         if(False in expressions_list ):
             print(self.printSemanticError(last_token.current_line, "An condition must have a boolean value ",self.getExpression(values)))
     
-
-    # TODO: 10 - Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela
-    def verifyVariableTypeAssignment(self, tokens):
-        pass
-
     
     # 13 - Não é possível atribuir um valor a uma constante, após a sua declaração.
     def notAllowAConstraintToReceiveValue(self,tokens):
@@ -663,23 +657,38 @@ class Semantic:
         if type(tokens[0]) == str:
             current_context = tokens[0]
         values = list(map(self.getTokenValue,tokens[1:]))
+        print(values)
         last_token = tokens[0]
         current_type = ''
         relational_value = False
         tokens = tokens[1:]
         valor_verdadeiro = True
         expressions_list = []
+        struct_value = ''
+        dot = False
         while self.hasNextToken(tokens):
             token = self.nextToken(tokens)
             last_token = token
+
+            if token.getValue() == '.' and tokens[tokens.index(token)-1].getValue()!= 'local' and tokens[tokens.index(token)-1].getValue()!= 'global':
+                struct_value = tokens[tokens.index(token)-1].getValue()
+                dot = True
+
             if token.getType() == 'IDE' or token.getType() == 'PRE':
-                symbol = self.getSymbol('local', token.getValue(), current_context)
+                if dot:
+                    dot = False
+                    pre_symbol = self.getSymbol('local', struct_value, current_context)
+                    symbol = self.getSymbol('local', token.getValue(), pre_symbol.getTokenType())
+                else:
+                    if self.peekNextToken(tokens).getValue()!='.':
+                        symbol = self.getSymbol('local', token.getValue(), current_context)
                 if relational_value and current_type != '':
                     if type(current_type)  == str:
-                        if symbol and symbol.getAssignmentType() != current_type:
+                        if symbol and symbol.getTokenType() != current_type.getTokenType():
                             valor_verdadeiro = False
                             relational_value = False
-                    elif symbol and symbol.getAssignmentType() != current_type.getAssignmentType():
+                    elif symbol and symbol.getTokenType() != current_type.getTokenType():
+                        print(symbol.getTokenType(), current_type.getTokenType())
                         valor_verdadeiro = False
                         relational_value = False
                 if type(current_type)  == str:

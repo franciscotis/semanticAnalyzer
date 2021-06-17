@@ -7,6 +7,7 @@ struct Pessoa
         boolean teste;
 	}
 
+
 }
 
 procedure func(int a, int b){
@@ -25,9 +26,11 @@ procedure start ()
         
     }
 
-   if(local.pess.teste) then{
-       print("e ai");
-   }
+    if(teste == pess.nome) then{
+        print("hello");
+    }
+
+  
 
 
 
