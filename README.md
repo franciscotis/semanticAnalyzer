@@ -28,6 +28,9 @@ ou
     Os arquivos terão o seguinte padrão: "saidaX.txt". Onde X é um número inteiro igual ao arquivo de entrada.
     
 
+### Observações:
+    É extremamente importante que o arquivo de entrada ***não*** possua nenhum erro sintático. Caso exista erros sintáticos, o analisador semântico não funcionará corretamente.
+
 ### Formatação dos tokens .
 O arquivo de saída irá conter os seguintes tokens formatados como mostra a seguir:
 
@@ -54,15 +57,15 @@ CAD  - Cadeia de Caracteres
 
 ```
 
-[x] Variável ou constante tem que ser inicializada antes de a utilizar. (local/global ok)
-[x] Index de vetor/matriz tem que ser um número inteiro. (local/global ok)
-[x] Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela. (local/global ok)  #TODO verificar TYPEDEF
+[x] Variável ou constante tem que ser inicializada antes de a utilizar.
+[x] Index de vetor/matriz tem que ser um número inteiro.
+[x] Se declarar uma variável como um tipo, não pode atribuir um valor de outro tipo nela.  
 [x] Não é possível declarar uma variável global se outra com o mesmo nome já foi declarada anteriormente. 
 [x] Não é possível declarar uma variável local se outra com o mesmo nome já foi declara anteriormente. 
 [x] É possível declarar uma variável local com o mesmo nome de uma variável global. 
-[x] Não é possível atribuir um valor a uma constante, após a sua declaração. (local/global ok)
+[x] Não é possível atribuir um valor a uma constante, após a sua declaração.
 [x] Não é possível declarar tipos diferentes de valores em um array (e.g. int a[] = {1,2,3,'abc',4}). 
-[ ] É possível fazer a concatenação de duas strings a partir do operador '+'. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
+[x] É possível fazer a concatenação de duas strings a partir do operador '+'. 
 
 ```
 
@@ -79,11 +82,11 @@ CAD  - Cadeia de Caracteres
 
 ```
 
-[x] Função ou procedure tem que ser declarada antes de a utilizar. #TODO - VERIFICAR SE USA O PARÂMETRO É UM VETOR
-[x] A função tem que ser chamada com a quantidade de parâmetros e tipos corretos. (global e local ok ) #TODO - VERIFICAR SE O DADO NÃO É UM TYPEDEF 
+[x] Função ou procedure tem que ser declarada antes de a utilizar. 
+[x] A função tem que ser chamada com a quantidade de parâmetros e tipos corretos.
 [x] O retorno da função tem que ser igual ao valor retornado
 [x] Não é possível fazer overloading do procedure start
-[x] Para ter a sobrecarga de métodos em geral, é avaliado a quantidade e tipo de parâmetros além do tipo de retorno. #TODO - VERIFICAR SE O DADO NÃO É UM TYPEDEF
+[x] Para ter a sobrecarga de métodos em geral, é avaliado a quantidade e tipo de parâmetros além do tipo de retorno. 
 [x] É possível ter uma função com o mesmo nome de um procedimento.
 
 ```
@@ -100,12 +103,12 @@ CAD  - Cadeia de Caracteres
 
 ```
 
-[x] Operações com valores de tipos diferentes não podem ser realizadas, pois a linguagem não permite a conversão de tipos. (global e local ok)
-[x] Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro). (global e local ok)  #TODO -  FAZER CHECAGEM COM TYPEDEF
+[x] Operações com valores de tipos diferentes não podem ser realizadas, pois a linguagem não permite a conversão de tipos. 
+[x] Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro).
 [x] Verificar se quando chama uma função na operação, esta não é um procedimento.
-[x] Não é possível realizar a comparação de valores de tipos diferentes. #TODO - FAZER CHECAGEM COM O TYPEDEF
-[x] Não é possível fazer incremento em string e em booleano. #TODO - FAZER CHECAGEM COM O TYPEDEF
-[x] Itens de condição em if e while tem que ser booleanos. (global e local ok)
-[ ] Dentro do print pode ser passado como parâmetro tudo que retorna valor, incluindo expressões no geral. #TODO - VERIFICAR SE USA O GLOBAL OU LOCAL
+[x] Não é possível realizar a comparação de valores de tipos diferentes. 
+[x] Não é possível fazer incremento em string e em booleano.
+[x] Itens de condição em if e while tem que ser booleanos. 
+[x] Dentro do print pode ser passado como parâmetro tudo que retorna valor, incluindo expressões no geral. 
 
 

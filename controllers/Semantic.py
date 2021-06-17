@@ -7,61 +7,71 @@ class Semantic:
         self.functions_table = {}
         self.current_token_value = 0
         self.typedef_list = {}
+        self.errors_list = []
 
 
     def analyze(self, symbol_table, rules, tokens_list, functions_table= None, typedef_list=None):
-        self.symbol_table = symbol_table
-        if functions_table is not None:
-            self.functions_table = functions_table
-        if typedef_list is not None:
-            self.typedef_list = typedef_list
-        for rule in rules:
-            self.current_token_value = 0
-            if rule == 'structExtends':
-                self.structExtends(tokens_list)
-            elif rule == 'methodDeclaredFirst':
-                self.methodDeclaredFirst(tokens_list)
-            elif rule == 'functionCallParameters':
-                self.functionCallParameters(tokens_list)
-            elif rule == 'notAllowAConstraintToReceiveValue':
-                self.notAllowAConstraintToReceiveValue(tokens_list)
-            elif rule == 'verifyIfIdentifierExists':
-                self.verifyIfIdentifierExists(tokens_list)
-            elif rule == 'checkBooleanCondition':
-                self.verifyIfBooleanExpressionIsCorrect(tokens_list)
-            elif rule == 'notAllowBooleanAndStringIncrements':
-                self.notAllowBooleanAndStringIncrements(tokens_list)
-            elif rule == 'checkTypeComparation':
-                self.notAllowComparationBetweenDifferentTypesOfVariables(tokens_list)
-            elif rule == 'verifyIfArithmeticExpressionIsCorrect':
-                self.verifyIfArithmeticExpressionIsCorrect(tokens_list)
-            elif rule == 'notAllowAssignNotInitializedVariable':
-                self.notAllowAssignNotInitializedVariable(tokens_list)
-            elif rule == 'verifyIfVetorIndexIsInteger':
-                self.verifyIfVetorIndexIsInteger(tokens_list)
-            elif rule == 'verifyIfGlobalVariableAlreadyExists':
-                self.verifyIfGlobalVariableAlreadyExists(tokens_list)
-            elif rule == 'typedefMustRedefineAllowedTypes':
-                self.typedefMustRedefineAllowedTypes(tokens_list)
-            elif rule == 'typedefWithSameIdentifierAndDifferentScopes':
-                self.typedefWithSameIdentifierAndDifferentScopes(tokens_list)
-            elif rule == 'methodOverloading':
-                self.methodOverloading(tokens_list)
-            elif rule == 'startOverloading':
-                self.startOverloading(tokens_list)
-            elif rule == 'verifyIfCallingAProcedureInsteadOfAFunction':
-                self.verifyIfCallingAProcedureInsteadOfAFunction(tokens_list)
-            elif rule == 'verifyIfFunctionReturnIsEquivalent':
-                self.verifyIfFunctionReturnIsEquivalent(tokens_list)
-            elif rule == 'verifyFuncionReturnType':
-                self.verifyFuncionReturnType(tokens_list)
-            elif rule == 'verifyIfVetorAssignmentTypeIsValid':
-                self.verifyIfVetorAssignmentTypeIsValid(tokens_list)
+        try:
+            self.symbol_table = symbol_table
+            if functions_table is not None:
+                self.functions_table = functions_table
+            if typedef_list is not None:
+                self.typedef_list = typedef_list
+            for rule in rules:
+                self.current_token_value = 0
+                if rule == 'structExtends':
+                    self.structExtends(tokens_list)
+                elif rule == 'methodDeclaredFirst':
+                    self.methodDeclaredFirst(tokens_list)
+                elif rule == 'functionCallParameters':
+                    self.functionCallParameters(tokens_list)
+                elif rule == 'notAllowAConstraintToReceiveValue':
+                    self.notAllowAConstraintToReceiveValue(tokens_list)
+                elif rule == 'verifyIfIdentifierExists':
+                    self.verifyIfIdentifierExists(tokens_list)
+                elif rule == 'checkBooleanCondition':
+                    self.verifyIfBooleanExpressionIsCorrect(tokens_list)
+                elif rule == 'notAllowBooleanAndStringIncrements':
+                    self.notAllowBooleanAndStringIncrements(tokens_list)
+                elif rule == 'checkTypeComparation':
+                    self.notAllowComparationBetweenDifferentTypesOfVariables(tokens_list)
+                elif rule == 'verifyIfArithmeticExpressionIsCorrect':
+                    self.verifyIfArithmeticExpressionIsCorrect(tokens_list)
+                elif rule == 'notAllowAssignNotInitializedVariable':
+                    self.notAllowAssignNotInitializedVariable(tokens_list)
+                elif rule == 'verifyIfVetorIndexIsInteger':
+                    self.verifyIfVetorIndexIsInteger(tokens_list)
+                elif rule == 'verifyIfGlobalVariableAlreadyExists':
+                    self.verifyIfGlobalVariableAlreadyExists(tokens_list)
+                elif rule == 'typedefMustRedefineAllowedTypes':
+                    self.typedefMustRedefineAllowedTypes(tokens_list)
+                elif rule == 'typedefWithSameIdentifierAndDifferentScopes':
+                    self.typedefWithSameIdentifierAndDifferentScopes(tokens_list)
+                elif rule == 'methodOverloading':
+                    self.methodOverloading(tokens_list)
+                elif rule == 'startOverloading':
+                    self.startOverloading(tokens_list)
+                elif rule == 'verifyIfCallingAProcedureInsteadOfAFunction':
+                    self.verifyIfCallingAProcedureInsteadOfAFunction(tokens_list)
+                elif rule == 'verifyIfFunctionReturnIsEquivalent':
+                    self.verifyIfFunctionReturnIsEquivalent(tokens_list)
+                elif rule == 'verifyFuncionReturnType':
+                    self.verifyFuncionReturnType(tokens_list)
+                elif rule == 'verifyIfVetorAssignmentTypeIsValid':
+                    self.verifyIfVetorAssignmentTypeIsValid(tokens_list)
+            aux = self.errors_list if self.errors_list != None else []
+            self.errors_list = []
+            return aux
+        except:
+            ("An error ocurred during the syntatic analysis. Check your code for syntactic erros and try again")
 
 
     def printSemanticError(self, lineNumber, errorType, got):
         texto = f"SEMANTIC ERROR on line {lineNumber}. {errorType} - {got}"
-        return texto
+        self.errors_list.append(texto)
+
+    def returnErrors(self):
+        return self.errors_list
 
     def getTokenValue(self, token):
         return token.getValue()   
@@ -92,10 +102,11 @@ class Semantic:
 
     def getSymbol(self, scope, name, function_name = None):
         if scope == 'local':
-            function_variables = self.symbol_table['local'][function_name]
-            for variable in function_variables:
-                if variable.getIdentifier() == name:
-                    return variable
+            if function_name in self.symbol_table['local']:
+                function_variables = self.symbol_table['local'][function_name]
+                for variable in function_variables:
+                    if variable.getIdentifier() == name:
+                        return variable
         if scope == 'global':
             for variable in self.symbol_table['global']:
                 if variable.getIdentifier() == name:
@@ -189,7 +200,10 @@ class Semantic:
                     if not value_symbol:
                         value_symbol = self.getSymbol('global', token[1].getValue())
                 elif token[0] == 'struct':
-                    tkn = self.getSymbol('local', token[2], current_context)
+                    if token[3] == 'local' or token[3] == '':
+                        tkn = self.getSymbol('local', token[2], current_context)
+                    elif token[3] == 'global':
+                        tkn = self.getSymbol('global', token[2])
                     value_symbol = self.getSymbol('local',token[1].getValue(), tkn.getTokenType())  
                 if token[1].getValue() == ';':
                     break
@@ -214,7 +228,7 @@ class Semantic:
     # TODO: 1 - Index de vetor/matriz tem que ser um número inteiro
     def verifyIfVetorIndexIsInteger(self, tokens):
         tokens2 = tokens.copy()
-        #print(tokens)
+        #(tokens)
         is_local = False
         is_global = False
         current_context = tokens2[0]
@@ -240,17 +254,17 @@ class Semantic:
                 else:
                     if token.getType() == "NRO":
                         if '.' in token.getValue():
-                            print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
+                            (self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
                             return
                         else:
                             return
                     if token.getType() == "CAD":
-                        print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
+                        (self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
                         return
 
                     if token.getType() == 'ART':
                         if token.getValue() == '/':
-                            print(self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
+                            (self.printSemanticError(token.current_line, "An array index must be integer ",self.getExpression(values)))
                             return
                     if token.getType() == 'PRE':
                         if token.getValue() == 'local':
@@ -258,23 +272,23 @@ class Semantic:
                         elif token.getValue() == 'global':
                             is_global = True
                         else:
-                             print(self.printSemanticError(token.current_line, "Invalid token",self.getExpression(values)))
+                             (self.printSemanticError(token.current_line, "Invalid token",self.getExpression(values)))
                     if token.getType() == 'IDE':
                         if is_local or is_global:
                             if is_local:
                                 symbol = self.getSymbol('local', token.getValue(), current_context)
                                 if symbol is None:
-                                    print(self.printSemanticError(token.current_line, "Local identifier not found",self.getExpression(values)))
+                                    (self.printSemanticError(token.current_line, "Local identifier not found",self.getExpression(values)))
                                 else:
                                     if symbol.getAssignmentType() !='INT':
-                                        print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                                        (self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
                             elif is_global:
                                 symbol = self.getSymbol('global', token.getValue())
                                 if symbol is None:
-                                    print(self.printSemanticError(token.current_line, "Global identifier not found",self.getExpression(values)))
+                                    (self.printSemanticError(token.current_line, "Global identifier not found",self.getExpression(values)))
                                 else:
                                     if symbol.getAssignmentType() !='INT':
-                                        print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))                                    
+                                        (self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))                                    
                         else:
                             declared_token = self.getSymbol('local', token.getValue(), current_context)
                             if declared_token is not None:
@@ -286,11 +300,11 @@ class Semantic:
                                 got_del = False
                                 symbol = self.getSymbol('local', token.getValue(), struct_type)
                                 if not symbol:
-                                    print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                                    (self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
                                     return
                                 else:
                                     if (symbol.getAssignmentType() != '' and symbol.getAssignmentType() != 'INT') or symbol.getTokenType() != 'int':
-                                        print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                                        (self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
                                         return
                             else:
                                 if self.peekNextToken(tokens2).getValue() == ']':
@@ -303,9 +317,9 @@ class Semantic:
                                         if symbol.getAssignmentType() !='INT':
                                             if symbol.getIsArray():
                                                 if symbol.getTokenType() != 'int':
-                                                    print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                                                    (self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
                                             else:
-                                                print(self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
+                                                (self.printSemanticError(token.current_line, "An array index must be integer and must have a value",self.getExpression(values)))
                                                 return
                     
         self.current_token_value = 0
@@ -356,10 +370,10 @@ class Semantic:
         if encontrado and is_function:
             return
         if is_local and not found_local:
-            print(self.printSemanticError(identifier.current_line, "Local identifier not found ",identifier.getValue()))
+            (self.printSemanticError(identifier.current_line, "Local identifier not found ",identifier.getValue()))
 
         elif is_global and not found_global:
-            print(self.printSemanticError(identifier.current_line, "Global identifier not found ",identifier.getValue()))
+            (self.printSemanticError(identifier.current_line, "Global identifier not found ",identifier.getValue()))
 
 
 
@@ -367,7 +381,7 @@ class Semantic:
     def methodDeclaredFirst(self, tokens):
         values = list(map(self.getTokenValue,tokens))
         if values[0] not in self.functions_table:
-            print(self.printSemanticError(tokens[0].current_line, "A function/procedure should be declared before call",tokens[0].getValue()+"()"))
+            (self.printSemanticError(tokens[0].current_line, "A function/procedure should be declared before call",tokens[0].getValue()+"()"))
 
     # 4 - Uma struct tem que herdar de outra struct existente.
     def structExtends(self, tokens):
@@ -376,7 +390,7 @@ class Semantic:
             index = values.index('extends')
             index+=1
             if values[index] not in self.symbol_table["local"]:
-                print(self.printSemanticError(tokens[index].current_line, "A struct should only extends another struct if the second one exists", tokens[index].getValue()))
+                (self.printSemanticError(tokens[index].current_line, "A struct should only extends another struct if the second one exists", tokens[index].getValue()))
 
 
     
@@ -426,7 +440,11 @@ class Semantic:
                     if self.peekNextToken(tokens2).getValue() != ".":
                         if dot:
                             dot = False
-                            params.append(['struct', token, struct_value])
+                            tkn = self.getSymbol('local', token.getValue(), current_context)
+                            if not tkn:
+                                (self.printSemanticError(token.current_line, f"{'Local' if is_local else 'Global'} Identifier not found",token.getValue()))
+                                return
+                            params.append(['struct', token, struct_value, 'local' if is_local else 'global' if is_global else ''])
                         elif is_local:
                             params.append(['local',token])
                         elif is_global:
@@ -441,7 +459,7 @@ class Semantic:
         for function_name in all_functions:
             function_parameter = self.functions_table[function_name].getParameters()
             params = list(map(self.getSymbolValue,function_parameter))
-           # print(function_name,params)
+           # (function_name,params)
             if quantity == len(function_parameter):
                 if types == params:
                     found = True
@@ -457,17 +475,17 @@ class Semantic:
 
         if found:
             if self.functions_table[function_call_name].getIsProcedure():
-                print(self.printSemanticError(function_call_name.current_line, "Procedures doesn't return a value ",function_call_name.getValue()))
+                (self.printSemanticError(function_call_name.current_line, "Procedures doesn't return a value ",function_call_name.getValue()))
 
 
         if not found:
             if not same_type:
-                print(self.printSemanticError(function_call_name.current_line, "Function/procedure call with the wrong parameter type",function_call_name.getValue()))
+                (self.printSemanticError(function_call_name.current_line, "Function/procedure call with the wrong parameter type",function_call_name.getValue()))
             else:
                 if quantity_parameters == 1:
-                    print(self.printSemanticError(function_call_name.current_line, "You passed more arguments than the function needs",function_call_name.getValue()))
+                    (self.printSemanticError(function_call_name.current_line, "You passed more arguments than the function needs",function_call_name.getValue()))
                 elif quantity_parameters == -1:
-                    print(self.printSemanticError(function_call_name.current_line, "You passed less arguments than the function needs",function_call_name.getValue()))
+                    (self.printSemanticError(function_call_name.current_line, "You passed less arguments than the function needs",function_call_name.getValue()))
             
                 
     # TODO: 7 - Expressões tem que ser realizadas entre valores de tipos coerentes (int + string = erro). 
@@ -513,11 +531,11 @@ class Semantic:
                         if is_local:
                             symbol = self.getSymbol('local', token.getValue(), current_context)
                             if not symbol:
-                                print(self.printSemanticError(token.current_line, "Local identifier not found  ",token.getValue()))
+                                (self.printSemanticError(token.current_line, "Local identifier not found  ",token.getValue()))
                         elif is_global:
                             symbol = self.getSymbol('global', token.getValue())
                             if not symbol:
-                                print(self.printSemanticError(token.current_line, "Global identifier not found  ",token.getValue()))
+                                (self.printSemanticError(token.current_line, "Global identifier not found  ",token.getValue()))
                         is_local = is_global = False
                     else:
                         if dot:
@@ -526,11 +544,11 @@ class Semantic:
                             if not struct_variable:
                                 struct_variable = self.getSymbol('global', struct_val.getValue())
                                 if not struct_variable:
-                                    print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                                    (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
                                     return
                             symbol = self.getSymbol('local', token.getValue(), struct_variable.getTokenType())
                         else:
-                            if self.peekNextToken(tokens).getValue() != '.':
+                            if self.peekNextToken(tokens)!= None and self.peekNextToken(tokens).getValue() != '.':
                                 symbol = self.getSymbol('local', token.getValue(), current_context)
                             if not symbol:
                                 symbol = self.getSymbol('global', token.getValue())
@@ -539,7 +557,7 @@ class Semantic:
                                 symbol = self.functions_table[token.getValue()]
                     if has_arithmetic:
                         if  previous_symbol != '' and symbol is not None and previous_symbol.getTokenType() != symbol.getTokenType():
-                            print(self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
+                            (self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
                         has_arithmetic = False
 
 
@@ -586,7 +604,7 @@ class Semantic:
                         if not struct_symbol:
                             struct_symbol = self.getSymbol('global', struct_name)
                             if not struct_symbol:
-                                print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                                (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
                                 return                        
                         symbol = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
                 else:
@@ -628,7 +646,7 @@ class Semantic:
         if len(expressions_list) == 0:
             expressions_list.append(False)
         if(False in expressions_list ):
-            print(self.printSemanticError(last_token.current_line, "An condition must have a boolean value ",self.getExpression(values)))
+            (self.printSemanticError(last_token.current_line, "An condition must have a boolean value ",self.getExpression(values)))
     
     
     # 13 - Não é possível atribuir um valor a uma constante, após a sua declaração.
@@ -639,28 +657,29 @@ class Semantic:
         is_local_global = False
         is_local = False
         is_global = False
-        if tokens2[0].getValue() == 'local' or tokens2[0].getValue() == 'global':
-            is_local_global = True
-            globloc = tokens2.pop(0)
-            values.pop(0)
-            tokens2.pop(0)
-            values.pop(0)
-            if globloc.getValue() == 'local':
-                is_local = True
+        if len(tokens2) > 1:
+            if tokens2[0].getValue() == 'local' or tokens2[0].getValue() == 'global':
+                is_local_global = True
+                globloc = tokens2.pop(0)
+                values.pop(0)
+                tokens2.pop(0)
+                values.pop(0)
+                if globloc.getValue() == 'local':
+                    is_local = True
+                else:
+                    is_global = True
+            variable_name = values.pop(0)
+            variable_token = tokens2.pop(0)
+            if is_local_global:
+                if is_local:
+                    variable_symbol = self.getSymbol('local',variable_name,current_context)
+                else:
+                    variable_symbol = self.getSymbol('global',variable_name)
             else:
-                is_global = True
-        variable_name = values.pop(0)
-        variable_token = tokens2.pop(0)
-        if is_local_global:
-            if is_local:
                 variable_symbol = self.getSymbol('local',variable_name,current_context)
-            else:
-                variable_symbol = self.getSymbol('global',variable_name)
-        else:
-            variable_symbol = self.getSymbol('local',variable_name,current_context)
-        if variable_symbol!= None:
-            if variable_symbol.isAConstSymbol():
-                print(self.printSemanticError(variable_token.current_line, "You cannot assign values to const variables after its declaration ",variable_token.getValue()))
+            if variable_symbol!= None:
+                if variable_symbol.isAConstSymbol():
+                    (self.printSemanticError(variable_token.current_line, "You cannot assign values to const variables after its declaration ",variable_token.getValue()))
 
 
 
@@ -678,6 +697,7 @@ class Semantic:
         expressions_list = []
         struct_value = ''
         dot = False
+        symbol = ''
         while self.hasNextToken(tokens):
             token = self.nextToken(tokens)
             last_token = token
@@ -693,7 +713,7 @@ class Semantic:
                     if not pre_symbol:
                         pre_symbol = self.getSymbol('global', struct_value)
                         if not pre_symbol:
-                            print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                            (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
                             return            
                     symbol = self.getSymbol('local', token.getValue(), pre_symbol.getTokenType())
                 else:
@@ -705,11 +725,10 @@ class Semantic:
                             valor_verdadeiro = False
                             relational_value = False
                     elif symbol and symbol.getTokenType() != current_type.getTokenType():
-                        print(symbol.getTokenType(), current_type.getTokenType())
                         valor_verdadeiro = False
                         relational_value = False
                 if type(current_type)  == str:
-                    if (symbol and current_type!= '' and current_type!= symbol.getIdentifier()) or (symbol and current_type == ''):
+                    if (symbol and symbol!= '' and current_type!= '' and current_type!= symbol.getIdentifier()) or (symbol and symbol!= '' and current_type == ''):
                         current_type = symbol
                 elif (symbol and current_type!= '' and current_type.getIdentifier()!= symbol.getIdentifier()) or (symbol and current_type == ''):
                     current_type = symbol
@@ -739,7 +758,7 @@ class Semantic:
                 expressions_list.append(valor_verdadeiro)
         self.current_token_value = 0
         if False in expressions_list:
-            print(self.printSemanticError(last_token.current_line, "You can't compare two different kinds of variables",self.getExpression(values)))
+            (self.printSemanticError(last_token.current_line, "You can't compare two different kinds of variables",self.getExpression(values)))
 
 
     def notAllowAssignNotInitializedVariable(self, tokens):
@@ -778,7 +797,7 @@ class Semantic:
 
             if token.getType() != 'IDE':
                 if token_left and self.peekNextToken(tokens2).getValue()!= '.' and token.getValue()!= '.':
-                    print(self.printSemanticError(token.current_line, "Invalid variable", token.getValue()))
+                    (self.printSemanticError(token.current_line, "Invalid variable", token.getValue()))
                     return
 
             if token.getType() == 'IDE':
@@ -795,7 +814,7 @@ class Semantic:
                         if not struct_symbol:
                             struct_symbol = self.getSymbol('global', struct_value)
                             if not struct_symbol:
-                                print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                                (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
                                 return            
                         symblocal = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
                     else:
@@ -811,7 +830,7 @@ class Semantic:
                         symbol1 = symblocal if symblocal is not None else symbglobal
                     first_token = symbol1
                     if first_token is None:
-                        print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                        (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
                         return
                     
                 else:
@@ -821,10 +840,10 @@ class Semantic:
                         if not struct_symbol:
                             struct_symbol = self.getSymbol('global', struct_value)
                             if not struct_symbol:
-                                print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                                (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
                                 return                   
                         else:
-                            print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                            (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
                             return
                         symblocal = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
                     else:                       
@@ -843,18 +862,18 @@ class Semantic:
                                 symbol1 = self.functions_table[token.getValue()]
                     if symbol1 is None:
                         if token.getType()!= 'NRO':
-                            print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                            (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
                         return
                     else:
                         
                         if(symbol1.getTokenType()!= first_token.getTokenType() or (symbol1.getIsArray() != first_token.getIsArray() and ('[' not in values))):
                             if not (symbol1 is not None and symbol1.getIsProcedure()) and not isFunction and self.peekNextToken(tokens2).getValue()!= ".":
-                                print(self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
+                                (self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
             elif token.getType() == 'NRO' or token.getType() == 'CAD':
                 token_type = ('real' if '.' in token.getValue() else 'int') if token.getType() == 'NRO' else 'string' 
                 if token_type != first_token.getTokenType():
                     if not (symbol1 is not None and symbol1.getIsProcedure()):
-                        print(self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
+                        (self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
         self.current_token_value = 0
     
     def notAllowBooleanAndStringIncrements(self, tokens):
@@ -887,7 +906,7 @@ class Semantic:
                     if not struct_symbol:
                         struct_symbol = self.getSymbol('global', struct_value)
                         if not struct_symbol:
-                            print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                            (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
                             return            
                     symbol = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
                 else:
@@ -904,7 +923,7 @@ class Semantic:
             is_art = False
             if symbol:
                 if(symbol.getTokenType()=='boolean' or symbol.getTokenType()=='string'):
-                    print(self.printSemanticError(token.current_line, "You cannot increment/decrement boolean or string variables ", token.getValue()))
+                    (self.printSemanticError(token.current_line, "You cannot increment/decrement boolean or string variables ", token.getValue()))
         self.current_token_value = 0
 
             
@@ -923,14 +942,14 @@ class Semantic:
                     encontrado = True
         
         if encontrado:
-            print(self.printSemanticError(identifier.current_line, f'{ "Local" if inside_method or inside_struct else "Global"} Variable already declared ',identifier.getValue()))
+            (self.printSemanticError(identifier.current_line, f'{ "Local" if inside_method or inside_struct else "Global"} Variable already declared ',identifier.getValue()))
         
 
     def typedefMustRedefineAllowedTypes(self, tokens):
         typedef_type, inside_method = tokens[0], tokens[1]
         struct_names = self.getDeclaredStructNames()
         if typedef_type.getValue() not in list(chain(['int', 'real', 'boolean', 'string'], struct_names)):
-             print(self.printSemanticError(typedef_type.current_line, "A typedef must redefine allowed types",typedef_type.getValue()))
+             (self.printSemanticError(typedef_type.current_line, "A typedef must redefine allowed types",typedef_type.getValue()))
 
     def typedefWithSameIdentifierAndDifferentScopes(self, tokens):
         typedef_type, typedef_new_type, inside_method = tokens[0], tokens[1], tokens[2]
@@ -938,7 +957,7 @@ class Semantic:
         if inside_method:
             if typedef_type.getValue() in list(chain(['int', 'real', 'boolean', 'string'], struct_names)):
                 if (typedef_new_type.getValue() in list(self.getTypedefValues())):
-                    print(self.printSemanticError(typedef_type.current_line, "You can't redefine a type with the same identifier within different scopes",typedef_type.getValue()))
+                    (self.printSemanticError(typedef_type.current_line, "You can't redefine a type with the same identifier within different scopes",typedef_type.getValue()))
 
     def methodOverloading(self, tokens):
         method_name, method_token, parameters = tokens[0], tokens[1], tokens[2]
@@ -948,12 +967,12 @@ class Semantic:
                 if existing_method :
                     if len(parameters) == len(existing_method.getParameters()):
                         if parameters == self.getFunctionParamsOrder(existing_method.getParameters()):
-                            print(self.printSemanticError(method_token.current_line, "This is not a valid method override",method_token.getValue()))
+                            (self.printSemanticError(method_token.current_line, "This is not a valid method override",method_token.getValue()))
                     
     def startOverloading(self, tokens):
         token = tokens[0]
         if 'start' in self.symbol_table['local']:
-            print(self.printSemanticError(token.current_line, "You cannot override the start procedure ",token.getValue()))
+            (self.printSemanticError(token.current_line, "You cannot override the start procedure ",token.getValue()))
 
     def verifyIfCallingAProcedureInsteadOfAFunction(self, tokens):
         tokens2 = tokens.copy()
@@ -1015,7 +1034,7 @@ class Semantic:
             if function_call_name.getValue() in func :
                 if quantity == func_param_size:
                     if self.functions_table[func].getIsProcedure():
-                        print(self.printSemanticError(function_call_name.current_line, "Procedures doesn't return a value ",function_call_name.getValue()))
+                        (self.printSemanticError(function_call_name.current_line, "Procedures doesn't return a value ",function_call_name.getValue()))
 
     def verifyIfFunctionReturnIsEquivalent(self, tokens):
         tokens2 = tokens.copy()
@@ -1059,12 +1078,12 @@ class Semantic:
 
                             symbol = self.getSymbol('local', pre_variable.getValue(), current_context)
                             if not symbol:
-                                print(self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
+                                (self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
                                 return
                         else:
                             symbol = self.getSymbol('global', pre_variable.getValue())
                             if not symbol:
-                                print(self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
+                                (self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
                                 return
                 else:
                     if is_first_variable and self.peekNextToken(tokens2).getValue() != '.':
@@ -1075,7 +1094,7 @@ class Semantic:
                             if not struct_symbol:
                                 struct_symbol = self.getSymbol('global', struct_value)
                                 if not struct_symbol:
-                                    print(self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                                    (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
                                     return            
                             symbol = self.getSymbol('local', token.getValue(), struct_symbol.getTokenType())
                         else:
@@ -1084,7 +1103,7 @@ class Semantic:
                             if not symbol:
                                 symbol = self.getSymbol('global', pre_variable.getValue())
                                 if not symbol:
-                                    print(self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
+                                    (self.printSemanticError(pre_variable.current_line, "Symbol not found ",pre_variable.getValue()))
                                     return
                 if time_for_params:
                     if self.peekNextToken(tokens2).getValue()!= '.':
@@ -1111,7 +1130,7 @@ class Semantic:
             if function_call_name.getValue() in func :
                 if quantity == func_param_size:
                     if self.functions_table[func].getAssignmentType().lower() != symbol.getTokenType():
-                        print(self.printSemanticError(function_call_name.current_line, "Function return's type doesn't match with variable type ",function_call_name.getValue()))
+                        (self.printSemanticError(function_call_name.current_line, "Function return's type doesn't match with variable type ",function_call_name.getValue()))
     
     def verifyFuncionReturnType(self, tokens):
         function_name = tokens.pop(0)
@@ -1137,7 +1156,7 @@ class Semantic:
                     return
 
             elif(self.functions_table.get(function_name).getAssignmentType() == self.getDataType(token)): return
-            print(self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()))
+            (self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()))
 
         elif(tokens2[0].getType()=='IDE'):
             token = tokens2[0]
@@ -1146,12 +1165,12 @@ class Semantic:
                 if not symbol:
                     symbol = self.getSymbol('global', token.getValue())
                     if not symbol:
-                        print(self.printSemanticError(token.current_line, "A function should be declared before call", token.getValue()+"()"))
+                        (self.printSemanticError(token.current_line, "A function should be declared before call", token.getValue()+"()"))
                 return
         
             function_identifier = self.functions_table.get(tokens2[0].getValue())
             if(self.functions_table.get(function_name).getAssignmentType() == function_identifier.getAssignmentType()): return
-            print(self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()+"()"))
+            (self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()+"()"))
         
 
     def verifyIfVetorAssignmentTypeIsValid(self, tokens):
@@ -1183,7 +1202,7 @@ class Semantic:
                         symbol = self.getSymbol('global', token.getValue())
 
                 if symbol is None or symbol == '':
-                    print(self.printSemanticError(token.current_line, "Identifier not found", token.getValue()))
+                    (self.printSemanticError(token.current_line, "Identifier not found", token.getValue()))
                 else:
                     tipo =  symbol.getTokenType()
             
@@ -1196,7 +1215,7 @@ class Semantic:
             elif token.getType() == 'BOOLEAN':
                 tipo = 'boolean'
             if tipo!= '' and tipo != current_symbol.getTokenType():
-                print(self.printSemanticError(tokens2[0].current_line, f"Array declared as {current_symbol.getTokenType()} and you are adding a {tipo} value ", current_symbol.getIdentifier()))
+                (self.printSemanticError(tokens2[0].current_line, f"Array declared as {current_symbol.getTokenType()} and you are adding a {tipo} value ", current_symbol.getIdentifier()))
                 return
 
         self.current_token_value = 0

@@ -1,0 +1,19 @@
+const
+{
+  int  x = 1;
+}
+
+var
+{
+   int a;
+   int b;
+}
+
+procedure start(){
+  print("e ai");
+}
+
+procedure start ()
+{
+    print("kk");
+}
