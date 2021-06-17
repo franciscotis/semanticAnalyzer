@@ -17,6 +17,8 @@ procedure func(int a, int b){
 
 
 
+
+
 procedure start ()
 {
     var{
@@ -27,7 +29,6 @@ procedure start ()
         
     }
 
-    ++bol;
 
 
 }

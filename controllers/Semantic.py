@@ -849,11 +849,11 @@ class Semantic:
                         if symbol is None:
                             symbol = self.getSymbol('global', token.getValue())
                         if(not symbol): return
-            if is_art:
-                is_art = False
-                if symbol:
-                    if(symbol.getTokenType()=='boolean' or symbol.getTokenType()=='string'):
-                        print(self.printSemanticError(token.current_line, "You cannot increment/decrement boolean or string variables ", token.getValue()))
+        if is_art:
+            is_art = False
+            if symbol:
+                if(symbol.getTokenType()=='boolean' or symbol.getTokenType()=='string'):
+                    print(self.printSemanticError(token.current_line, "You cannot increment/decrement boolean or string variables ", token.getValue()))
         self.current_token_value = 0
 
             
