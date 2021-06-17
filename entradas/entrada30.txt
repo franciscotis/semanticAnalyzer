@@ -23,11 +23,6 @@ function int aiai(){
     return 10;
 }
 
-
-
-
-
-
 procedure start ()
 {
     var{
@@ -38,7 +33,7 @@ procedure start ()
         
     }
 
-    pess.idade = aiai(); 
+    teste = aiai(); 
 
 
 }
