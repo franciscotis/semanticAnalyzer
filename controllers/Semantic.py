@@ -27,7 +27,7 @@ class Semantic:
                     self.functionCallParameters(tokens_list)
                 elif rule == 'notAllowAConstraintToReceiveValue':
                     self.notAllowAConstraintToReceiveValue(tokens_list)
-                elif rule == 'verifyIfIdentifierExists':
+                elif rule == 'verifyIfIdentiffierExists':
                     self.verifyIfIdentifierExists(tokens_list)
                 elif rule == 'checkBooleanCondition':
                     self.verifyIfBooleanExpressionIsCorrect(tokens_list)
@@ -59,11 +59,11 @@ class Semantic:
                     self.verifyFuncionReturnType(tokens_list)
                 elif rule == 'verifyIfVetorAssignmentTypeIsValid':
                     self.verifyIfVetorAssignmentTypeIsValid(tokens_list)
-            aux = self.errors_list if self.errors_list != None else []
+            aux = self.errors_list if self.errors_list != None else []    
             self.errors_list = []
             return aux
         except:
-            ("An error ocurred during the syntatic analysis. Check your code for syntactic erros and try again")
+            ("An error ocurred during the semantic analysis. Check your code for syntactic errors and try again")
 
 
     def printSemanticError(self, lineNumber, errorType, got):
@@ -380,6 +380,7 @@ class Semantic:
     # 3 - Uma function ou procedure tem que ser declarada antes de a utilizar.
     def methodDeclaredFirst(self, tokens):
         values = list(map(self.getTokenValue,tokens))
+
         if values[0] not in self.functions_table:
             (self.printSemanticError(tokens[0].current_line, "A function/procedure should be declared before call",tokens[0].getValue()+"()"))
 
@@ -425,7 +426,9 @@ class Semantic:
                 if token.getValue() == '.' and tokens2[tokens2.index(token)-1].getType() != 'PRE':
                     dot = True
                     struct_value = tokens2[tokens2.index(token)-1].getValue()
-            if is_rel:
+                if self.hasNextToken(tokens2):
+                    token = self.nextToken(tokens2)
+            if is_rel or (self.peekNextToken(tokens2) is not None and self.peekNextToken(tokens2).getValue() == '(') :
                 if token.getType() =='IDE':
                     function_call_name = token
                     is_rel = False
@@ -801,13 +804,13 @@ class Semantic:
                     return
 
             if token.getType() == 'IDE':
-                
                 if has_rel:
                     has_rel = False
                     if token.getValue() in self.functions_table:
                         isFunction = True
                 if token_left:
-                    token_left = False
+                    if self.peekNextToken(tokens2).getValue() != '.':
+                        token_left = False
                     if dot:
                         dot = False
                         struct_symbol = self.getSymbol('local', struct_value, function_name)
@@ -861,16 +864,23 @@ class Semantic:
                             if token.getValue() in self.functions_table:
                                 symbol1 = self.functions_table[token.getValue()]
                     if symbol1 is None:
-                        if token.getType()!= 'NRO':
-                            (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
-                        return
+                        if function_name in self.functions_table:
+                            function_symb = self.functions_table[function_name]
+                            found = False
+                            for param in function_symb.getParameters():
+                                if param.getIdentifier() == token.getValue():
+                                    found = True
+                            if not found:
+                                if token.getType()!= 'NRO' or token.getType()!= 'CAD':
+                                    (self.printSemanticError(token.current_line, "An identifier must be valid before assign to a variable", token.getValue()))
+                                    return
                     else:
                         
                         if(symbol1.getTokenType()!= first_token.getTokenType() or (symbol1.getIsArray() != first_token.getIsArray() and ('[' not in values))):
                             if not (symbol1 is not None and symbol1.getIsProcedure()) and not isFunction and self.peekNextToken(tokens2).getValue()!= ".":
                                 (self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
             elif token.getType() == 'NRO' or token.getType() == 'CAD':
-                token_type = ('real' if '.' in token.getValue() else 'int') if token.getType() == 'NRO' else 'string' 
+                token_type = ('real' if '.' in token.getValue() else 'int') if token.getType() == 'NRO' else 'string'
                 if token_type != first_token.getTokenType():
                     if not (symbol1 is not None and symbol1.getIsProcedure()):
                         (self.printSemanticError(token.current_line, "Variables must have the same type", token.getValue()))
@@ -976,8 +986,10 @@ class Semantic:
 
     def verifyIfCallingAProcedureInsteadOfAFunction(self, tokens):
         tokens2 = tokens.copy()
+        
         current_context = tokens2.pop(0)
         declared_function = tokens2.pop(0)
+        values = list(map(self.getTokenValue, tokens2))
         has_rel = False
         got_func_name = False
         function_call_name = ''
@@ -1008,8 +1020,7 @@ class Semantic:
                     is_global = True if token.getValue() == 'global' else False
 
             if token.getType() == 'IDE':
-                if has_rel:
-                    has_rel = False
+                if self.peekNextToken(tokens2).getValue() == '(' and not got_func_name:
                     got_func_name = True
                     function_call_name = token
                 if is_del:
@@ -1031,16 +1042,19 @@ class Semantic:
         for func in self.functions_table:
             function_parameter = self.functions_table[func].getParameters()
             func_param_size = len(function_parameter)
-            if function_call_name.getValue() in func :
+            if function_call_name.getValue() in func:
                 if quantity == func_param_size:
                     if self.functions_table[func].getIsProcedure():
-                        (self.printSemanticError(function_call_name.current_line, "Procedures doesn't return a value ",function_call_name.getValue()))
+                        self.printSemanticError(function_call_name.current_line, "Procedures doesn't return a value ",function_call_name.getValue())
+            else:
+                self.printSemanticError(function_call_name.current_line, "Function not found ",function_call_name.getValue())
 
     def verifyIfFunctionReturnIsEquivalent(self, tokens):
         tokens2 = tokens.copy()
         is_local = False
         is_global = False
         current_context = tokens2.pop(0)
+
         declared_function = tokens2.pop(0)
         is_first_variable = True
         is_relational = False
@@ -1136,7 +1150,7 @@ class Semantic:
         function_name = tokens.pop(0)
         tokens2 = tokens[0:-1]
         symbol = None
-        
+        values = list(map(self.getTokenValue, tokens2))
         if(len(tokens2)==0): return
 
         if(len(tokens2)==1):
@@ -1215,7 +1229,7 @@ class Semantic:
             elif token.getType() == 'BOOLEAN':
                 tipo = 'boolean'
             if tipo!= '' and tipo != current_symbol.getTokenType():
-                (self.printSemanticError(tokens2[0].current_line, f"Array declared as {current_symbol.getTokenType()} and you are adding a {tipo} value ", current_symbol.getIdentifier()))
+                (self.printSemanticError(tokens2[0].current_line, f"Array declared as {current_symbol.getTokenType()} and you are adding a(n) {tipo} value ", current_symbol.getIdentifier()))
                 return
 
         self.current_token_value = 0

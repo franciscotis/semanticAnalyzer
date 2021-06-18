@@ -29,7 +29,8 @@ ou
     
 
 ### Observações:
-    É extremamente importante que o arquivo de entrada ***não*** possua nenhum erro sintático. Caso exista erros sintáticos, o analisador semântico não funcionará corretamente.
+
+É extremamente importante que o arquivo de entrada **não** possua nenhum erro sintático. Caso exista erros sintáticos, o analisador semântico não funcionará corretamente.
 
 ### Formatação dos tokens .
 O arquivo de saída irá conter os seguintes tokens formatados como mostra a seguir:

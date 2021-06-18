@@ -1,19 +1,41 @@
-const
-{
-  int  x = 1;
+// Testes de funtions e procedures
+
+var{
+    int contador = 0;
 }
 
-var
-{
-   int a;
-   int b;
+function int soma(int a, int b){
+    return a()+b;
 }
+
+function real circunf(real raio){
+    var{
+        real resultado;
+    }
+    const{
+        real pi = 3.14;
+        int teste = 1;
+    }
+
+    resultado = pi*raio*raio;
+    return resultado;
+}
+
+procedure sobe(){
+    global.contador++;
+}
+
 
 procedure start(){
-  print("e ai");
-}
-
-procedure start ()
-{
-    print("kk");
+    var{
+        int a, b;
+        real raio;
+    }
+    sobe();
+    a = 2;
+    b = 3;
+    if(global.contador == 1)then{
+        raio = 3.0;
+    }
+    circunf(raio);
 }

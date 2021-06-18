@@ -35,12 +35,10 @@ class Syntactic:
         self.current_array = ''
 
     def run(self):
-        try:
-            self.getNextToken()
-            self.inicio()
-            self.lexical.file.print_file(self.token_list)
-        except:
-            print("An error ocurred during the syntatic analysis. Check your input file and try again")
+        
+        self.getNextToken()
+        self.inicio()
+        self.lexical.file.print_file(self.token_list)
 
 
     def getRealValueOfTypedef(self, symbol):
@@ -189,6 +187,7 @@ class Syntactic:
                     self.contFCall()
                 else:
                      self.token_list.append(self.printError(self.token.current_line, self.firstSet["CONTFCALL"], self.token.getValue()))
+
                 self.token_list = self.token_list + self.semantic.analyze(self.symbol_table, ['verifyIfCallingAProcedureInsteadOfAFunction','verifyIfFunctionReturnIsEquivalent','functionCallParameters'],list(chain([self.current_method, self.declared_function], self.token_value_list)), self.functions_table)
         elif self.token.getType() in self.firstSet["FUNCTIONCALL"]:
             self.functionCall()
