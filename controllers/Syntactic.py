@@ -298,6 +298,11 @@ class Syntactic:
 
     def vetorE1(self):
         if self.token.getValue() =='[':
+            function_parameters = self.functions_table[self.current_method].getParameters()
+            get_param = lambda param: self.previous_tkn.getValue()==param.getIdentifier()
+            symbol = list(filter(get_param, function_parameters))[0]
+            symbol.setIsArray(True)
+            
             self.getNextToken()
             if self.token.getValue() in self.firstSet["ARITMETICOP"] or self.token.getType() in self.firstSet["ARITMETICOP"]:
                 self.array_index = True
