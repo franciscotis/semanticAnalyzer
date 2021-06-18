@@ -1,15 +1,16 @@
-const
-{
-  int  x = 1;
-}
 
-var
-{
-   int a;
-   int b;
+
+function int sum(int a, int v[4]){
+  print("e ai");
+  return 10;
 }
 
 procedure start ()
 {
     
+    var{
+      int v[2] = [1,2],teste;
+    }
+
+    teste = sum(3,teste);
 }

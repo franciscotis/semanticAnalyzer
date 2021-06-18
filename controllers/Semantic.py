@@ -219,6 +219,41 @@ class Semantic:
                         types.append('string')
         return quantity, types
 
+
+    def getQuantityOfParametersAndTypes3(self, tokens, current_context):
+        quantity = 0
+        types  = []
+        for token in tokens:
+            if token[1].getType() == 'IDE' or token[1].getType() == 'NRO' or token[1].getType() == 'CAD':
+                quantity+=1
+                if token[0] == 'local':
+                    value_symbol = self.getSymbol('local', token[1].getValue(),current_context)
+                elif token[0] == 'global':
+                    value_symbol = self.getSymbol('global', token[1].getValue())
+                elif token[0] == '':
+                    value_symbol = self.getSymbol('local', token[1].getValue(),current_context)
+                    if not value_symbol:
+                        value_symbol = self.getSymbol('global', token[1].getValue())
+                elif token[0] == 'struct':
+                    if token[3] == 'local' or token[3] == '':
+                        tkn = self.getSymbol('local', token[2], current_context)
+                    elif token[3] == 'global':
+                        tkn = self.getSymbol('global', token[2])
+                    value_symbol = self.getSymbol('local',token[1].getValue(), tkn.getTokenType())  
+                if token[1].getValue() == ';':
+                    break
+                if value_symbol is not None:
+                    types.append(value_symbol)
+                else:
+                    if token[1].getType() == 'NRO':
+                        if '.' in token[1].getValue():
+                            types.append('real')
+                        else:
+                            types.append('int')
+                    elif token[1].getType() == 'CAD':
+                        types.append('string')
+        return quantity, types
+
     
                 
 
@@ -407,6 +442,7 @@ class Semantic:
         params = []
         got_params = False
         values = list(map(self.getTokenValue,tokens2))
+        print(values)
         is_local_global = False
         is_local = False
         is_global = False
@@ -458,22 +494,31 @@ class Semantic:
                     params.append(['',token])
         self.current_token_value = 0
         all_functions = self.getAllFunctionsWithSimilarName(function_call_name.getValue())
-        quantity, types = self.getQuantityOfParametersAndTypes2(params, current_context)
+        quantity, types = self.getQuantityOfParametersAndTypes3(params, current_context)
         for function_name in all_functions:
-            function_parameter = self.functions_table[function_name].getParameters()
-            params = list(map(self.getSymbolValue,function_parameter))
-           # (function_name,params)
-            if quantity == len(function_parameter):
-                if types == params:
+            params = self.functions_table[function_name].getParameters()
+            equal = True
+            if quantity == len(params):
+                for tipo_parametro, tipo_funcao in zip(types, params):
+                    if type(tipo_parametro) == str:
+                        if tipo_parametro != tipo_funcao.getTokenType():
+                            equal = False
+                    else:
+                        if tipo_parametro.getTokenType() == tipo_funcao.getTokenType():
+                            if tipo_parametro.getIsArray() != tipo_funcao.getIsArray():
+                                equal = False
+                        else:
+                            equal = False
+                if equal:
                     found = True
                     same_type = True
                     quantity_parameters = 0
                     return
                 else: 
                     same_type = False
-            elif quantity < len(function_parameter):
+            elif quantity < len(params):
                 quantity_parameters = -1
-            elif quantity > len(function_parameter):
+            elif quantity > len(params):
                 quantity_parameters = 1
 
         if found:
@@ -1034,20 +1079,25 @@ class Semantic:
                             function_params.append(['global',token])
                         else:
                             function_params.append(['',token])
+                            
                     
-                    if token.getType() == 'NRO' or token.getType() =='CAD':
-                        function_params.append(['',token])
+            if token.getType() == 'NRO' or token.getType() =='CAD':
+                function_params.append(['',token])
         self.current_token_value = 0
         quantity, types = self.getQuantityOfParametersAndTypes2(function_params, current_context)
+        found = False
         for func in self.functions_table:
             function_parameter = self.functions_table[func].getParameters()
             func_param_size = len(function_parameter)
             if function_call_name.getValue() in func:
                 if quantity == func_param_size:
+                    found = True
                     if self.functions_table[func].getIsProcedure():
                         self.printSemanticError(function_call_name.current_line, "Procedures doesn't return a value ",function_call_name.getValue())
-            else:
+                        return
+            if not found:
                 self.printSemanticError(function_call_name.current_line, "Function not found ",function_call_name.getValue())
+                return
 
     def verifyIfFunctionReturnIsEquivalent(self, tokens):
         tokens2 = tokens.copy()
