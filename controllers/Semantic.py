@@ -557,6 +557,8 @@ class Semantic:
         dot = False
         struct_val = ''
         symbol = None
+        is_previous_const = False
+        previous_const = ''
         while self.hasNextToken(tokens):
             token = self.nextToken(tokens)
             if token.getValue() == '.':
@@ -574,6 +576,10 @@ class Semantic:
                         is_local = True
                     elif token.getValue() == 'global':
                         is_global = True
+                
+                if token.getType() == 'NRO':
+                    is_previous_const = True
+                    previous_const = token
                 if token.getType() == 'IDE':
                     if first:
                         first = False
@@ -615,13 +621,19 @@ class Semantic:
 
                     if (symbol is not None and previous_symbol!= '' and previous_symbol.getIdentifier() != symbol.getIdentifier()) or (symbol is not None and previous_symbol == ''):
                             previous_symbol = symbol
-                    
-                    
-
+                
                 elif token.getType() == 'ART':
-                    if self.isArithmetic(token.getValue()):
+                    if is_previous_const:
+                        if token.getValue() == '/':
+                            if previous_const!= '':
+                                if not '.' in previous_symbol.getValue():
+                                    (self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))                            
+                    elif self.isArithmetic(token.getValue()):
                         if token.getValue() == '/':
                             is_division = True
+                            if previous_symbol!= '':
+                                if previous_symbol.getTokenType() == 'int':
+                                    (self.printSemanticError(token.current_line, "Expressions must be performed between values of coherent types",self.getExpression(values)))
                             
                         has_arithmetic = True
                         is_local = is_global = False
@@ -1227,20 +1239,28 @@ class Semantic:
 
             elif(self.functions_table.get(function_name).getAssignmentType() == self.getDataType(token)): return
             (self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()))
-
-        elif(tokens2[0].getType()=='IDE'):
-            token = tokens2[0]
-            if(not self.functions_table.get(token.getValue())):
-                symbol = self.getSymbol('local', token.getValue(), function_name)
-                if not symbol:
-                    symbol = self.getSymbol('global', token.getValue())
-                    if not symbol:
-                        (self.printSemanticError(token.current_line, "A function should be declared before call", token.getValue()+"()"))
-                return
         
-            function_identifier = self.functions_table.get(tokens2[0].getValue())
-            if(self.functions_table.get(function_name).getAssignmentType() == function_identifier.getAssignmentType()): return
-            (self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()+"()"))
+        else:
+            for token in tokens2:
+                if(token.getType()=='ART'): 
+                    operator = token.getValue()
+                    if(operator=='/' and self.functions_table.get(function_name).getAssignmentType()=='INT'):
+                        (self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()))
+                        return
+
+            if(tokens2[0].getType()=='IDE'):
+                token = tokens2[0]
+                if(not self.functions_table.get(token.getValue())):
+                    symbol = self.getSymbol('local', token.getValue(), function_name)
+                    if not symbol:
+                        symbol = self.getSymbol('global', token.getValue())
+                        if not symbol:
+                            (self.printSemanticError(token.current_line, "A function should be declared before call", token.getValue()+"()"))
+                    return
+            
+                function_identifier = self.functions_table.get(tokens2[0].getValue())
+                if(self.functions_table.get(function_name).getAssignmentType() == function_identifier.getAssignmentType()): return
+                (self.printSemanticError(token.current_line, "Function's return must be the same declared type", token.getValue()+"()"))
         
 
     def verifyIfVetorAssignmentTypeIsValid(self, tokens):

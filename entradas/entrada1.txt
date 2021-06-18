@@ -15,15 +15,13 @@ struct Pessoa {
 
 typedef struct Pessoa Person;
 
-function int sum(int a, int b){
-    return 0;
+function real sum(int a, int b){
+    return 10/20;
 }
 
-function int sum(int a, int b){
-    return 0;
-}
 
-function int mult(real a, int b){
+
+function real mult(real a, int b){
     return a;
 }
 
