@@ -35,12 +35,12 @@ class Syntactic:
         self.current_array = ''
 
     def run(self):
-        #try:
-        self.getNextToken()
-        self.inicio()
-        self.lexical.file.print_file(self.token_list)
-        #except:
-            #print("An error ocurred during the syntactic analysis. Check your input file and try again.")
+        try:
+            self.getNextToken()
+            self.inicio()
+            self.lexical.file.print_file(self.token_list)
+        except:
+            print("An error ocurred during the syntactic analysis. Check your input file and try again.")
 
 
     def getRealValueOfTypedef(self, symbol):
