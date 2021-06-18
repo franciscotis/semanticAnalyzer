@@ -1,0 +1,38 @@
+struct Pessoa 
+{
+	string nome;
+	int idade;
+	real salario;
+
+}
+
+struct Joao extends Pessoa {
+	var {
+		string nome;
+		int idade;
+		real salario;
+	}
+}
+
+const
+{
+  int x = 1;
+  string s = "teste";
+  real a = 5.3;
+
+}
+
+var
+{
+   int a;
+   int b;
+   Pessoa p;
+}
+
+
+
+procedure start()
+{
+
+}
+

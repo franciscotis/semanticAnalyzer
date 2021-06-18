@@ -1,0 +1,30 @@
+const
+{
+  int x = 1;
+  string s = "teste";
+  real z = 5.3;
+
+}
+
+var
+{
+   int a;
+   int b;
+}
+
+
+procedure teste()
+{
+    var
+    {
+       int c;
+       int d;
+       real e;
+    }
+
+}
+
+procedure start ()
+{
+
+}

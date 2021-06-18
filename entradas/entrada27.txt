@@ -1,0 +1,26 @@
+const
+{
+  int  x = 1;
+}
+
+var
+{
+   int a;
+   int b;
+}
+
+function int Soma()
+{
+    var
+    {
+       int e;
+    }
+    return e;
+    e = c + d;
+
+}
+
+procedure start ()
+{
+    Soma(b, a);
+}

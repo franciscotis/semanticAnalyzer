@@ -1,0 +1,30 @@
+struct Pessoa 
+{
+	string nome;
+	int idade;
+	real salario;
+
+}
+
+const
+{
+  int x = 1;
+  string s = "teste";
+  real c = 5.3;
+
+}
+
+var
+{
+   int a;
+   int b;
+   Pessoa p;
+}
+
+
+
+procedure start ()
+{
+   a = b + 5 * p.idade;
+}
+

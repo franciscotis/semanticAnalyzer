@@ -1,0 +1,21 @@
+const
+{
+  int x = 1;
+  real z = 5.3;
+
+}
+
+var
+{
+   int a;
+   int b;
+   int c;
+   real w;
+}
+
+procedure start ()
+{
+    read(w;
+    print(w + 8.5);
+
+}
