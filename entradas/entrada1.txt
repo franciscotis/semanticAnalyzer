@@ -1,16 +1,41 @@
 
-
-function int sum(int a, int v[4]){
-  print("e ai");
-  return 10;
+const {
+    real PI = 3.14;
 }
 
-procedure start ()
-{
-    
-    var{
-      int v[2] = [1,2],teste;
-    }
+var {
+    int a;
+}
 
-    teste = sum(3,teste);
+struct Pessoa {
+    var {
+        int idade;
+    }
+}
+
+typedef struct Pessoa Person;
+
+function int sum(int a, int b){
+    return 0;
+}
+
+function int sum(int a, int b){
+    return 0;
+}
+
+function int mult(real a, int b){
+    return a;
+}
+
+
+procedure start(){
+    var {
+        int b, c;
+        Person pess;
+    }
+    
+    PI = 3.0;
+    z = global.PI;
+    local.a = mult(2, 2);
+    pess.idade = 200;
 }

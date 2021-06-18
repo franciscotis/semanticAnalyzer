@@ -35,12 +35,12 @@ class Syntactic:
         self.current_array = ''
 
     def run(self):
-        try:
-            self.getNextToken()
-            self.inicio()
-            self.lexical.file.print_file(self.token_list)
-        except:
-            print("An error ocurred during the syntactic analysis. Check your input file and try again.")
+        #try:
+        self.getNextToken()
+        self.inicio()
+        self.lexical.file.print_file(self.token_list)
+        #except:
+            #print("An error ocurred during the syntactic analysis. Check your input file and try again.")
 
 
     def getRealValueOfTypedef(self, symbol):
@@ -376,6 +376,7 @@ class Syntactic:
         if self.token.getValue() == 'struct':
             self.getNextToken()
             if self.dataType():
+                self.current_variable_type = self.token.getValue()
                 self.getNextToken()
             else:
                 self.token_list.append(self.printError(self.token.current_line, ["Datatype token"], self.token.getValue()))
@@ -1615,9 +1616,14 @@ class Syntactic:
         elif self.token.getValue() == 'struct':
             self.getNextToken()
             if self.token.getType()=="IDE":
+                typedef_type = self.token
+                self.token_list = self.token_list + self.semantic.analyze(self.symbol_table, ['typedefMustRedefineAllowedTypes'],[self.token, self.inside_method], self.functions_table, self.typedef_list)
                 self.getNextToken()
                 if self.token.getType()=="IDE":
+                    typedef_new_type = self.token
+                    self.token_list = self.token_list + self.semantic.analyze(self.symbol_table, ['typedefWithSameIdentifierAndDifferentScopes'],[typedef_type, typedef_new_type, self.inside_method], self.functions_table, self.typedef_list)
                     self.getNextToken()
+                    self.typedef_list[typedef_type.getValue()] = typedef_new_type.getValue()
                     if self.token.getValue() == ';':
                         self.getNextToken()
                     else:

@@ -442,7 +442,6 @@ class Semantic:
         params = []
         got_params = False
         values = list(map(self.getTokenValue,tokens2))
-        print(values)
         is_local_global = False
         is_local = False
         is_global = False
@@ -503,10 +502,15 @@ class Semantic:
                     if type(tipo_parametro) == str:
                         if tipo_parametro != tipo_funcao.getTokenType():
                             equal = False
+                        else:
+                            return
+
                     else:
                         if tipo_parametro.getTokenType() == tipo_funcao.getTokenType():
                             if tipo_parametro.getIsArray() != tipo_funcao.getIsArray():
                                 equal = False
+                            else:
+                                return
                         else:
                             equal = False
                 if equal:
@@ -725,6 +729,8 @@ class Semantic:
                     variable_symbol = self.getSymbol('global',variable_name)
             else:
                 variable_symbol = self.getSymbol('local',variable_name,current_context)
+                if not variable_symbol:
+                    variable_symbol = self.getSymbol('global',variable_name)
             if variable_symbol!= None:
                 if variable_symbol.isAConstSymbol():
                     (self.printSemanticError(variable_token.current_line, "You cannot assign values to const variables after its declaration ",variable_token.getValue()))
@@ -1095,9 +1101,9 @@ class Semantic:
                     if self.functions_table[func].getIsProcedure():
                         self.printSemanticError(function_call_name.current_line, "Procedures doesn't return a value ",function_call_name.getValue())
                         return
-            if not found:
-                self.printSemanticError(function_call_name.current_line, "Function not found ",function_call_name.getValue())
-                return
+        if not found:
+            self.printSemanticError(function_call_name.current_line, "Function not found ",function_call_name.getValue())
+            return
 
     def verifyIfFunctionReturnIsEquivalent(self, tokens):
         tokens2 = tokens.copy()
